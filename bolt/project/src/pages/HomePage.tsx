@@ -69,6 +69,28 @@ export default function HomePage({ onNavigate }: Props) {
   const [liveTime, setLiveTime] = useState(getISTTime());
   const [lastUpdated, setLastUpdated] = useState(0);
   const [todaySchedules, setTodaySchedules] = useState<RoomSchedule[]>([]);
+  const [installPrompt, setInstallPrompt] = useState<any>(null);
+const [isInstallable, setIsInstallable] = useState(false);
+
+useEffect(() => {
+  const handler = (e: any) => {
+    e.preventDefault();
+    setInstallPrompt(e);
+    setIsInstallable(true);
+  };
+  window.addEventListener('beforeinstallprompt', handler);
+  return () => window.removeEventListener('beforeinstallprompt', handler);
+}, []);
+
+const handleInstall = async () => {
+  if (!installPrompt) return;
+  installPrompt.prompt();
+  const { outcome } = await installPrompt.userChoice;
+  if (outcome === 'accepted') {
+    setInstallPrompt(null);
+    setIsInstallable(false);
+  }
+};
 
   const todayName = getISTDayName();
   const hourSlot = getCurrentHourSlot();
@@ -174,23 +196,54 @@ export default function HomePage({ onNavigate }: Props) {
             gap: 16,
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <button
-              onClick={() => setMenuOpen(true)}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                color: '#FFFFFF',
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                padding: 4,
-              }}
-            >
-              <Menu size={24} />
-            </button>
-          </div>
-          <div style={{ textAlign: 'right' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+  <button
+    onClick={() => setMenuOpen(true)}
+    style={{
+      background: 'transparent',
+      border: 'none',
+      color: '#FFFFFF',
+      cursor: 'pointer',
+      display: 'flex',
+      alignItems: 'center',
+      padding: 4,
+    }}
+  >
+    <Menu size={24} />
+  </button>
+
+  {isInstallable && (
+    <button
+      onClick={handleInstall}
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 6,
+        padding: '7px 14px',
+        borderRadius: 100,
+        border: '1px solid #7C3AED',
+        background: 'rgba(124,58,237,0.12)',
+        color: '#7C3AED',
+        fontSize: 12,
+        fontWeight: 700,
+        cursor: 'pointer',
+        fontFamily: 'inherit',
+        transition: 'all 0.2s ease',
+        whiteSpace: 'nowrap',
+      }}
+      onMouseEnter={(e) => {
+        (e.currentTarget as HTMLButtonElement).style.background = '#7C3AED';
+        (e.currentTarget as HTMLButtonElement).style.color = '#FFFFFF';
+      }}
+      onMouseLeave={(e) => {
+        (e.currentTarget as HTMLButtonElement).style.background = 'rgba(124,58,237,0.12)';
+        (e.currentTarget as HTMLButtonElement).style.color = '#7C3AED';
+      }}
+    >
+      ⬇ Install App
+    </button>
+  )}
+</div>          <div style={{ textAlign: 'right' }}>
             <div
               style={{
                 fontSize: 14,
