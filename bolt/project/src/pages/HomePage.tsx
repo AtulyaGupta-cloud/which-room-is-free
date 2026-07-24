@@ -90,7 +90,6 @@ export default function HomePage({ onNavigate }: Props) {
   const [selectedTime, setSelectedTime] = useState<string>(snapToHourSlot());
   const [menuOpen, setMenuOpen] = useState(false);
   const [savedRoomsOpen, setSavedRoomsOpen] = useState(false);
-  const [activeMap, setActiveMap] = useState<string | null>(null);
   const [liveTime, setLiveTime] = useState(getISTTime());
   const [lastUpdated, setLastUpdated] = useState(0);
   const [todaySchedules, setTodaySchedules] = useState<RoomSchedule[]>([]);
@@ -276,15 +275,6 @@ const handleInstall = async () => {
       }
       return 0;
     });
-
-  const MAPS = [
-    { label: 'FD I Map', id: 'fd1' },
-    { label: 'FD II Map', id: 'fd2' },
-    { label: 'FD III Map', id: 'fd3' },
-    { label: 'LTC Map', id: 'ltc' },
-    { label: 'NAB Map', id: 'nab' },
-    { label: 'IPC Map', id: 'ipc' },
-  ];
 
   const showClockTower = ['ALL', 'FREE NOW', 'BUSY NOW', 'FREE 1HR+'].includes(activeFilter);
 
@@ -712,61 +702,6 @@ const handleInstall = async () => {
                 })}
               </div>
             ))}
-
-            <p
-              style={{
-                color: '#888',
-                fontSize: 11,
-                textTransform: 'uppercase',
-                letterSpacing: '0.08em',
-                marginBottom: 12,
-                marginTop: 8,
-              }}
-            >
-              Campus Maps
-            </p>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 16 }}>
-              {MAPS.map((map) => (
-                <button
-                  key={map.id}
-                  onClick={() => setActiveMap(map.id === activeMap ? null : map.id)}
-                  style={{
-                    width: '100%',
-                    padding: '10px 14px',
-                    background: activeMap === map.id ? '#7C3AED22' : '#1A1A1A',
-                    border: `1px solid ${activeMap === map.id ? '#7C3AED' : '#333'}`,
-                    borderRadius: 10,
-                    color: activeMap === map.id ? '#7C3AED' : '#AAA',
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                    fontSize: 13,
-                    fontFamily: 'inherit',
-                    transition: 'all 0.15s ease',
-                  }}
-                >
-                  {map.label}
-                </button>
-              ))}
-            </div>
-
-            {activeMap && (
-              <div
-                style={{
-                  background: '#1A1A1A',
-                  border: '1px solid #333',
-                  borderRadius: 12,
-                  padding: 16,
-                  marginBottom: 16,
-                  textAlign: 'center',
-                }}
-              >
-                <p style={{ color: '#555', fontSize: 12, margin: 0 }}>📍 Map image coming soon</p>
-                <p style={{ color: '#333', fontSize: 11, margin: '6px 0 0' }}>
-                  Upload your map image and I'll add it here
-                </p>
-              </div>
-            )}
 
             <button
               type="button"
