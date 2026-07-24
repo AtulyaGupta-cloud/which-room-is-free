@@ -1,6 +1,13 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Search, X, Menu } from 'lucide-react';
+import { useState, useEffect, useCallback, type FormEvent } from 'react';
+import { Search, X, Menu, LocateFixed, MapPin, Heart, ChevronDown, Star } from 'lucide-react';
 import { supabase, Room, RoomSchedule } from '../lib/supabase';
+import {
+  Coordinates,
+  formatApproximateDistance,
+  formatWalkingDistance,
+  getBuildingCoordinates,
+  getDistanceInMeters,
+} from '../lib/distance';
 import {
   computeRoomStatusAtTime,
   RoomStatus,
@@ -42,6 +49,16 @@ const BUILDING_FILTER_MAP: Record<string, string> = {
 };
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+const FAVORITES_KEY = 'which-room-is-free:favorites';
+
+function getStoredFavorites(): string[] {
+  try {
+    const saved = JSON.parse(localStorage.getItem(FAVORITES_KEY) ?? '[]');
+    return Array.isArray(saved) ? saved.filter((value): value is string => typeof value === 'string') : [];
+  } catch {
+    return [];
+  }
+}
 
 // Snap any current time to the nearest class-hour slot start (08:00 to 17:00)
 function snapToHourSlot(): string {
@@ -56,6 +73,13 @@ interface Props {
   onNavigate: (path: string) => void;
 }
 
+type LocationStatus = 'idle' | 'requesting' | 'ready' | 'error';
+
+interface WalkingRoute {
+  distanceMeters: number;
+  durationSeconds: number;
+}
+
 export default function HomePage({ onNavigate }: Props) {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [statuses, setStatuses] = useState<RoomStatus[]>([]);
@@ -65,12 +89,22 @@ export default function HomePage({ onNavigate }: Props) {
   const [selectedDay, setSelectedDay] = useState<string>(getISTDayName());
   const [selectedTime, setSelectedTime] = useState<string>(snapToHourSlot());
   const [menuOpen, setMenuOpen] = useState(false);
+  const [savedRoomsOpen, setSavedRoomsOpen] = useState(false);
   const [activeMap, setActiveMap] = useState<string | null>(null);
   const [liveTime, setLiveTime] = useState(getISTTime());
   const [lastUpdated, setLastUpdated] = useState(0);
   const [todaySchedules, setTodaySchedules] = useState<RoomSchedule[]>([]);
   const [installPrompt, setInstallPrompt] = useState<any>(null);
 const [isInstallable, setIsInstallable] = useState(false);
+  const [userLocation, setUserLocation] = useState<Coordinates | null>(null);
+  const [locationAccuracy, setLocationAccuracy] = useState<number | null>(null);
+  const [locationStatus, setLocationStatus] = useState<LocationStatus>('idle');
+  const [locationError, setLocationError] = useState('');
+  const [walkingRoutes, setWalkingRoutes] = useState<Record<string, WalkingRoute>>({});
+  const [favoriteRooms, setFavoriteRooms] = useState<string[]>(getStoredFavorites);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [feedbackRating, setFeedbackRating] = useState(0);
+  const [feedbackText, setFeedbackText] = useState('');
 
 useEffect(() => {
   const handler = (e: any) => {
@@ -92,8 +126,89 @@ const handleInstall = async () => {
   }
 };
 
+  const fetchWalkingRoutes = async (location: Coordinates) => {
+    const { data, error } = await supabase.functions.invoke('walking-distances', {
+      body: location,
+    });
+
+    if (error || !data?.routes) {
+      setWalkingRoutes({});
+      setLocationError('Walking routes are unavailable, so approximate distance is shown.');
+    } else {
+      setWalkingRoutes(data.routes as Record<string, WalkingRoute>);
+      setLocationError('');
+    }
+    setLocationStatus('ready');
+  };
+
+  const requestLocation = () => {
+    if (!navigator.geolocation) {
+      setLocationStatus('error');
+      setLocationError('Location is not supported on this device.');
+      return;
+    }
+
+    setLocationStatus('requesting');
+    setLocationError('');
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setUserLocation({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        });
+        setLocationAccuracy(position.coords.accuracy);
+        void fetchWalkingRoutes({
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+        });
+      },
+      (error) => {
+        setLocationStatus('error');
+        setLocationError(
+          error.code === error.PERMISSION_DENIED
+            ? 'Location permission was denied. Enable it in browser settings to see distances.'
+            : 'Could not get your location. Please try again outdoors or near a window.'
+        );
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+    );
+  };
+
   const todayName = getISTDayName();
   const hourSlot = getCurrentHourSlot();
+
+  const toggleFavorite = (roomNumber: string) => {
+    setFavoriteRooms((current) => {
+      const next = current.includes(roomNumber)
+        ? current.filter((number) => number !== roomNumber)
+        : [...current, roomNumber];
+      localStorage.setItem(FAVORITES_KEY, JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const openFeedback = () => {
+    setMenuOpen(false);
+    setFeedbackOpen(true);
+  };
+
+  const submitFeedback = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const message = feedbackText.trim();
+    if (feedbackRating < 1 || message.length < 3) return;
+
+    const stars = `${'★'.repeat(feedbackRating)}${'☆'.repeat(5 - feedbackRating)}`;
+    const whatsappMessage = `Feedback for Which Room Is Free\n\nRating: ${stars} (${feedbackRating}/5)\n\n${message}`;
+    window.open(
+      `https://wa.me/917976194901?text=${encodeURIComponent(whatsappMessage)}`,
+      '_blank',
+      'noopener,noreferrer'
+    );
+
+    setFeedbackRating(0);
+    setFeedbackText('');
+    setFeedbackOpen(false);
+  };
 
   // Re-sync day + time to "right now" every time the page is opened/reloaded
   useEffect(() => {
@@ -171,10 +286,13 @@ const handleInstall = async () => {
     { label: 'IPC Map', id: 'ipc' },
   ];
 
+  const showClockTower = ['ALL', 'FREE NOW', 'BUSY NOW', 'FREE 1HR+'].includes(activeFilter);
+
   return (
-    <div style={{ minHeight: '100vh', background: '#0A0A0A', color: '#FFFFFF', fontFamily: 'Inter, -apple-system, sans-serif' }}>
+    <div className="home-page digital-theme" style={{ minHeight: '100vh', background: '#0A0A0A', color: '#FFFFFF', fontFamily: 'Inter, -apple-system, sans-serif' }}>
       {/* Sticky Header */}
       <header
+        className="app-header"
         style={{
           position: 'sticky',
           top: 0,
@@ -186,6 +304,7 @@ const handleInstall = async () => {
         }}
       >
         <div
+          className="app-header-row"
           style={{
             maxWidth: 1200,
             margin: '0 auto',
@@ -196,7 +315,7 @@ const handleInstall = async () => {
             gap: 16,
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div className="header-actions" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
   <button
     onClick={() => setMenuOpen(true)}
     style={{
@@ -243,7 +362,7 @@ const handleInstall = async () => {
       ⬇ Install App
     </button>
   )}
-</div>          <div style={{ textAlign: 'right' }}>
+</div>          <div className="live-clock" style={{ textAlign: 'right' }}>
             <div
               style={{
                 fontSize: 14,
@@ -264,9 +383,22 @@ const handleInstall = async () => {
         </div>
       </header>
 
-      <main style={{ maxWidth: 1200, margin: '0 auto', padding: '50px 20px 120px' }}>
-        <div style={{ textAlign: 'center', marginBottom: 30 }}>
+      <main className="home-main" style={{ maxWidth: 1200, margin: '0 auto', padding: '50px 20px 120px' }}>
+        <div
+          className={`landing-hero${showClockTower || activeFilter === 'NAB' ? ' has-visual' : ''}`}
+          style={{ textAlign: 'center', marginBottom: 30 }}
+        >
+          <div
+            className={`hero-visual hero-visual-clock${showClockTower ? ' is-active' : ''}`}
+            aria-hidden="true"
+          />
+          <div
+            className={`hero-visual hero-visual-nab${activeFilter === 'NAB' ? ' is-active' : ''}`}
+            aria-hidden="true"
+          />
           <h1
+            className="hero-title"
+            aria-label="Which Room Is Free?"
             style={{
               fontSize: 'clamp(36px,8vw,52px)',
               fontWeight: 900,
@@ -277,16 +409,22 @@ const handleInstall = async () => {
               lineHeight: 1.1,
             }}
           >
-            Which Room Is Free?
+            <span className="hero-title-word word-which">Which</span>{' '}
+            <span className="hero-title-word word-room">Room</span>{' '}
+            <span className="hero-title-word word-is">Is</span>{' '}
+            <span className="hero-title-word word-free">Free?</span>
           </h1>
 
-          <p style={{ color: '#666', marginTop: 10, fontSize: 14 }}>
-            BITS Pilani Real-Time Room Availability
+          <p className="hero-subtitle" style={{ color: '#666', marginTop: 10, fontSize: 14 }}>
+            <span>BITS Pilani</span>
+            <strong>Real-Time Room Availability</strong>
           </p>
 
-          <p style={{ color: '#2A2A2A', marginTop: 6, fontSize: 11, letterSpacing: '0.03em' }}>
-            Made with ❤️ by Atulya Gupta
+          <p className="credit-line" style={{ marginTop: 8 }}>
+            <span>Made by</span>
+            <strong>Atulya Gupta</strong>
           </p>
+
         </div>
 
         {/* Sunday Banner */}
@@ -308,11 +446,12 @@ const handleInstall = async () => {
         )}
 
         {/* Filter Bar */}
-        <div style={{ overflowX: 'auto', marginBottom: 14, paddingBottom: 4, scrollbarWidth: 'none' }}>
+        <div className="filter-scroll" style={{ overflowX: 'auto', marginBottom: 14, paddingBottom: 4, scrollbarWidth: 'none' }}>
           <div style={{ display: 'flex', gap: 8, minWidth: 'max-content' }}>
             {FILTERS.map((f) => (
               <button
                 key={f}
+                className={`filter-chip${activeFilter === f ? ' is-active' : ''}`}
                 onClick={() => setActiveFilter(f)}
                 style={{
                   padding: '8px 16px',
@@ -336,12 +475,13 @@ const handleInstall = async () => {
         </div>
 
         {/* Day + Time selectors */}
-        <div style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
+        <div className="time-selectors" style={{ display: 'flex', gap: 10, marginBottom: 16 }}>
           <select
             value={selectedDay}
             onChange={(e) => setSelectedDay(e.target.value)}
             style={{
               flex: 1,
+              minWidth: 0,
               background: '#111',
               color: '#FFF',
               border: '1px solid #222',
@@ -364,6 +504,7 @@ const handleInstall = async () => {
             onChange={(e) => setSelectedTime(e.target.value)}
             style={{
               flex: 1,
+              minWidth: 0,
               background: '#111',
               color: '#FFF',
               border: '1px solid #222',
@@ -445,6 +586,28 @@ const handleInstall = async () => {
           )}
         </div>
 
+        <div className="distance-control">
+          <div>
+            <p className="distance-control-title">
+              <LocateFixed size={14} />
+              {locationStatus === 'ready' ? 'Distance from you is on' : 'See distance from you'}
+            </p>
+            <p className={locationStatus === 'error' ? 'distance-error' : 'distance-note'}>
+              {locationStatus === 'ready'
+                ? `${Object.keys(walkingRoutes).length > 0 ? 'Walking route' : 'Approximate distance'}${locationAccuracy ? ` · GPS ±${Math.round(locationAccuracy)} m` : ''}${locationError ? ` · ${locationError}` : ''}`
+                : locationError || 'Your location stays on this device and is never stored.'}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={requestLocation}
+            disabled={locationStatus === 'requesting'}
+            className="distance-button"
+          >
+            {locationStatus === 'requesting' ? 'Locating…' : locationStatus === 'ready' ? 'Refresh' : 'Enable'}
+          </button>
+        </div>
+
         {/* Grid */}
         {loading ? (
           <div className="room-grid">
@@ -460,9 +623,25 @@ const handleInstall = async () => {
           </div>
         ) : (
           <div className="room-grid">
-            {filtered.map((s) => (
-              <RoomCard key={s.room.id} status={s} onClick={() => onNavigate(`/room/${s.room.room_number}`)} />
-            ))}
+            {filtered.map((s) => {
+              const buildingLocation = getBuildingCoordinates(s.room.building);
+              const walkingRoute = walkingRoutes[s.room.building];
+              const distance = walkingRoute?.distanceMeters ?? (userLocation && buildingLocation
+                ? getDistanceInMeters(userLocation, buildingLocation)
+                : null);
+
+              return (
+                <RoomCard
+                  key={s.room.id}
+                  status={s}
+                  distance={distance}
+                  walkingDuration={walkingRoute?.durationSeconds ?? null}
+                  isFavorite={favoriteRooms.includes(s.room.room_number)}
+                  onToggleFavorite={() => toggleFavorite(s.room.room_number)}
+                  onClick={() => onNavigate(`/room/${s.room.room_number}`)}
+                />
+              );
+            })}
           </div>
         )}
       </main>
@@ -475,6 +654,7 @@ const handleInstall = async () => {
           />
 
           <div
+            className="side-menu"
             style={{
               position: 'fixed',
               top: 0,
@@ -489,6 +669,49 @@ const handleInstall = async () => {
             }}
           >
             <h2 style={{ marginTop: 0 }}>Menu</h2>
+
+            <button
+              type="button"
+              className="saved-rooms-toggle"
+              aria-expanded={savedRoomsOpen}
+              aria-controls="saved-rooms-menu"
+              onClick={() => setSavedRoomsOpen((open) => !open)}
+            >
+              <span>Saved Rooms</span>
+              <span className="saved-rooms-toggle-meta">
+                {favoriteRooms.length}
+                <ChevronDown size={15} aria-hidden="true" />
+              </span>
+            </button>
+            {savedRoomsOpen && (favoriteRooms.length === 0 ? (
+              <p id="saved-rooms-menu" className="saved-rooms-empty">Tap the heart on a room to save it here.</p>
+            ) : (
+              <div id="saved-rooms-menu" className="saved-rooms-list">
+                {favoriteRooms.map((roomNumber) => {
+                  const savedStatus = statuses.find((item) => item.room.room_number === roomNumber);
+                  const savedColor = savedStatus?.isBusy ? '#FF3B3B' : '#00FF88';
+                  return (
+                    <button
+                      type="button"
+                      key={roomNumber}
+                      className="saved-room-button"
+                      onClick={() => {
+                        setMenuOpen(false);
+                        onNavigate(`/room/${roomNumber}`);
+                      }}
+                    >
+                      <span>
+                        <strong>{roomNumber}</strong>
+                        <small>{savedStatus?.room.building ?? 'Saved room'}</small>
+                      </span>
+                      <span style={{ color: savedColor }}>
+                        {savedStatus ? (savedStatus.isBusy ? 'BUSY' : 'FREE') : 'OPEN'}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            ))}
 
             <p
               style={{
@@ -546,22 +769,80 @@ const handleInstall = async () => {
             )}
 
             <button
-              onClick={() => window.open('https://wa.me/917976194901', '_blank')}
-              style={{
-                width: '100%',
-                padding: 14,
-                background: '#25D366',
-                border: 'none',
-                borderRadius: 12,
-                color: '#FFF',
-                fontWeight: 700,
-                cursor: 'pointer',
-              }}
+              type="button"
+              className="feedback-menu-button"
+              onClick={openFeedback}
             >
-              WhatsApp Feedback
+              Give Feedback
             </button>
           </div>
         </>
+      )}
+
+      {feedbackOpen && (
+        <div className="feedback-modal-layer" role="presentation">
+          <button
+            type="button"
+            className="feedback-modal-backdrop"
+            aria-label="Close feedback"
+            onClick={() => setFeedbackOpen(false)}
+          />
+          <section className="feedback-modal" role="dialog" aria-modal="true" aria-labelledby="feedback-title">
+            <button
+              type="button"
+              className="feedback-modal-close"
+              aria-label="Close feedback"
+              onClick={() => setFeedbackOpen(false)}
+            >
+              <X size={18} />
+            </button>
+
+            <form onSubmit={submitFeedback}>
+                <h2 id="feedback-title">Share feedback</h2>
+                <p className="feedback-intro">Help make Which Room Is Free better.</p>
+
+                <fieldset className="feedback-rating">
+                  <legend>How would you rate the app?</legend>
+                  <div>
+                    {[1, 2, 3, 4, 5].map((rating) => (
+                      <button
+                        type="button"
+                        key={rating}
+                        className={rating <= feedbackRating ? 'is-selected' : ''}
+                        aria-label={`${rating} star${rating === 1 ? '' : 's'}`}
+                        aria-pressed={rating === feedbackRating}
+                        onClick={() => setFeedbackRating(rating)}
+                      >
+                        <Star size={28} fill="currentColor" />
+                      </button>
+                    ))}
+                  </div>
+                </fieldset>
+
+                <label className="feedback-message-label" htmlFor="feedback-message">Write your feedback</label>
+                <textarea
+                  id="feedback-message"
+                  value={feedbackText}
+                  maxLength={1000}
+                  rows={5}
+                  placeholder="Tell us what worked or what could be better…"
+                  onChange={(event) => setFeedbackText(event.target.value)}
+                />
+                <div className="feedback-form-meta">
+                  <span>WhatsApp will open; your profile or number may be visible when you send.</span>
+                  <span>{feedbackText.length}/1000</span>
+                </div>
+
+                <button
+                  type="submit"
+                  className="feedback-submit"
+                  disabled={feedbackRating < 1 || feedbackText.trim().length < 3}
+                >
+                  Continue to WhatsApp
+                </button>
+              </form>
+          </section>
+        </div>
       )}
 
       {/* Footer */}
@@ -570,13 +851,13 @@ const handleInstall = async () => {
         {lastUpdated > 0 && (
           <p style={{ color: '#222', fontSize: 11, margin: '0 0 6px' }}>Last updated {secondsAgo}s ago</p>
         )}
-        <p style={{ color: '#444', fontSize: 12, margin: 0 }}>Made with ❤️ by Atulya Gupta</p>
+        <p className="credit-line" style={{ margin: 0 }}>Made by Atulya Gupta</p>
       </footer>
     </div>
   );
 }
 
-function RoomCard({ status, onClick }: { status: RoomStatus; onClick: () => void }) {
+function RoomCard({ status, distance, walkingDuration, isFavorite, onToggleFavorite, onClick }: { status: RoomStatus; distance: number | null; walkingDuration: number | null; isFavorite: boolean; onToggleFavorite: () => void; onClick: () => void }) {
   const { room, isBusy, currentCourse, busyUntil, freeUntil, freeForMins, freeAllDay } = status;
   const color = isBusy ? '#FF3B3B' : '#00FF88';
 
@@ -595,6 +876,7 @@ function RoomCard({ status, onClick }: { status: RoomStatus; onClick: () => void
 
   return (
     <div
+      className={`room-card ${isBusy ? 'is-busy' : 'is-free'}`}
       onClick={onClick}
       style={{
         background: '#111111',
@@ -620,11 +902,26 @@ function RoomCard({ status, onClick }: { status: RoomStatus; onClick: () => void
         (e.currentTarget as HTMLDivElement).style.borderColor = `${color}2A`;
       }}
     >
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 6 }}>
-        <span style={{ fontSize: 18, fontWeight: 800, color: '#FFFFFF', letterSpacing: '-0.5px' }}>
-          {room.room_number}
-        </span>
+      <div className="room-card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 4, marginBottom: 6 }}>
+        <div className="room-card-identity" style={{ display: 'flex', alignItems: 'center', gap: 3, minWidth: 0 }}>
+          <span className="room-number" style={{ fontSize: 18, fontWeight: 800, color: '#FFFFFF', letterSpacing: '-0.5px' }}>
+            {room.room_number}
+          </span>
+          <button
+            type="button"
+            className={`favorite-button${isFavorite ? ' is-favorite' : ''}`}
+            aria-label={isFavorite ? `Remove room ${room.room_number} from saved rooms` : `Save room ${room.room_number}`}
+            title={isFavorite ? 'Remove saved room' : 'Save room'}
+            onClick={(event) => {
+              event.stopPropagation();
+              onToggleFavorite();
+            }}
+          >
+            <Heart size={14} fill={isFavorite ? 'currentColor' : 'none'} />
+          </button>
+        </div>
         <span
+          className="room-status-badge"
           style={{
             padding: '4px 10px',
             borderRadius: 100,
@@ -639,13 +936,22 @@ function RoomCard({ status, onClick }: { status: RoomStatus; onClick: () => void
           {isBusy ? 'BUSY' : 'FREE'}
         </span>
       </div>
-      <p style={{ color: '#444', fontSize: 10, margin: '0 0 8px', fontWeight: 500 }}>
+      <p className="room-building" style={{ color: '#444', fontSize: 10, margin: '0 0 8px', fontWeight: 500 }}>
         {room.building}
         {room.floor ? ` · ${room.floor} Floor` : ''}
       </p>
-      <p style={{ color, fontSize: 12, fontWeight: 700, margin: 0 }}>{primaryText}</p>
+      <p className="room-primary-status" style={{ color, fontSize: 12, fontWeight: 700, margin: 0 }}>{primaryText}</p>
 
-      {secondaryText && <p style={{ color: '#555', fontSize: 12, margin: '3px 0 0' }}>{secondaryText}</p>}
+      {distance !== null && (
+        <p className="room-distance">
+          <MapPin size={11} aria-hidden="true" />
+          {walkingDuration !== null
+            ? `${formatWalkingDistance(distance)} · ${Math.max(1, Math.round(walkingDuration / 60))} min walk`
+            : `${formatApproximateDistance(distance)} away`}
+        </p>
+      )}
+
+      {secondaryText && <p className="room-secondary-status" style={{ color: '#555', fontSize: 12, margin: '3px 0 0' }}>{secondaryText}</p>}
     </div>
   );
 }

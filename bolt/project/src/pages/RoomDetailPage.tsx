@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Share2 } from 'lucide-react';
 import { supabase, Room, RoomSchedule } from '../lib/supabase';
 import {
   computeRoomStatus,
@@ -34,6 +34,21 @@ export default function RoomDetailPage({ roomNumber, onNavigate, allRooms, allSc
 
   const todayName = getISTDayName();
   const now = getCurrentTimeStr();
+
+  const shareOnWhatsApp = () => {
+    if (!room || !status) return;
+
+    const statusLine = status.isBusy
+      ? `🔴 BUSY until ${formatTimeStr(status.busyUntil!)}`
+      : status.freeAllDay
+      ? '🟢 FREE for the rest of the day'
+      : `🟢 FREE until ${formatTimeStr(status.freeUntil!)}`;
+    const courseLine = status.currentCourse ? `\nCourse: ${status.currentCourse}` : '';
+    const roomUrl = `${window.location.origin}/room/${encodeURIComponent(room.room_number)}`;
+    const message = `🏫 Room ${room.room_number} · ${room.building}\n${statusLine}${courseLine}\n\nSee schedule: ${roomUrl}\nShared from Which Room Is Free?`;
+
+    window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
+  };
 
   useEffect(() => {
     async function load() {
@@ -138,6 +153,10 @@ export default function RoomDetailPage({ roomNumber, onNavigate, allRooms, allSc
                 )}
               </>
             )}
+            <button type="button" className="whatsapp-share-button" onClick={shareOnWhatsApp}>
+              <Share2 size={16} />
+              Share status on WhatsApp
+            </button>
           </div>
         )}
 
@@ -187,7 +206,7 @@ export default function RoomDetailPage({ roomNumber, onNavigate, allRooms, allSc
 
       <footer style={{ borderTop: '1px solid #161616', padding: '20px', textAlign: 'center' }}>
         <p style={{ color: '#2A2A2A', fontSize: 12, margin: '0 0 6px' }}>Built for BITS Pilani · Sem 2 2025-26</p>
-        <p style={{ color: '#444', fontSize: 12, margin: 0 }}>Made with ❤️ by Atulya Gupta</p>
+        <p className="credit-line" style={{ margin: 0 }}>Made by Atulya Gupta</p>
       </footer>
     </div>
   );
