@@ -1980,6 +1980,97 @@ input { caret-color: #7C3AED; }
   cursor: pointer;
 }
 
+.colophon-menu-button {
+  width: 100%;
+  margin-top: 9px;
+  padding: 12px 14px;
+  border: 1px solid #303030;
+  border-radius: 12px;
+  background: #181818;
+  color: #AAA;
+  font: 800 12px inherit;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.digital-theme .colophon-menu-button {
+  border-color: rgba(103, 232, 249, 0.32);
+  background: rgba(7, 30, 48, 0.78);
+  color: #A5F3FC;
+  box-shadow: inset 0 0 18px rgba(34, 211, 238, 0.04);
+}
+
+.colophon-modal {
+  width: min(620px, 100%);
+}
+
+.colophon-kicker {
+  margin: 0 42px 8px 0;
+  color: #67E8F9;
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.colophon-copy {
+  display: grid;
+  gap: 14px;
+  margin-top: 22px;
+}
+
+.colophon-copy p {
+  margin: 0;
+  padding: 14px 15px;
+  border: 1px solid rgba(103, 232, 249, 0.13);
+  border-radius: 12px;
+  background: rgba(6, 27, 44, 0.62);
+  color: #AFC4CE;
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.colophon-copy strong {
+  color: #E8FAFF;
+}
+
+.colophon-credit {
+  color: #FDE68A;
+  font-weight: 900;
+  text-shadow: 0 0 14px rgba(250, 204, 21, 0.2);
+}
+
+.colophon-copy .colophon-signoff {
+  border-color: rgba(196, 181, 253, 0.25);
+  background: linear-gradient(135deg, rgba(34, 211, 238, 0.08), rgba(139, 92, 246, 0.1));
+  color: #DDF8FF;
+  font-weight: 800;
+  text-align: center;
+}
+
+@media (max-width: 600px) {
+  .colophon-modal {
+    padding: 22px 16px;
+  }
+
+  .colophon-modal h2 {
+    padding-right: 30px;
+    font-size: 20px;
+  }
+
+  .colophon-copy {
+    gap: 10px;
+    margin-top: 17px;
+  }
+
+  .colophon-copy p {
+    padding: 11px 12px;
+    font-size: 12px;
+    line-height: 1.55;
+  }
+}
+
 .feedback-modal-layer {
   position: fixed;
   z-index: 1200;

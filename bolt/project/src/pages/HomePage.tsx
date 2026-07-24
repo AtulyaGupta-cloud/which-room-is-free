@@ -102,6 +102,7 @@ const [isInstallable, setIsInstallable] = useState(false);
   const [walkingRoutes, setWalkingRoutes] = useState<Record<string, WalkingRoute>>({});
   const [favoriteRooms, setFavoriteRooms] = useState<string[]>(getStoredFavorites);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [colophonOpen, setColophonOpen] = useState(false);
   const [feedbackRating, setFeedbackRating] = useState(0);
   const [feedbackText, setFeedbackText] = useState('');
 
@@ -710,6 +711,17 @@ const handleInstall = async () => {
             >
               Give Feedback
             </button>
+
+            <button
+              type="button"
+              className="colophon-menu-button"
+              onClick={() => {
+                setMenuOpen(false);
+                setColophonOpen(true);
+              }}
+            >
+              Colophon
+            </button>
           </div>
         </>
       )}
@@ -777,6 +789,58 @@ const handleInstall = async () => {
                 </button>
               </form>
           </section>
+        </div>
+      )}
+
+      {colophonOpen && (
+        <div className="feedback-modal-layer" role="presentation">
+          <button
+            type="button"
+            className="feedback-modal-backdrop"
+            aria-label="Close colophon"
+            onClick={() => setColophonOpen(false)}
+          />
+          <article className="feedback-modal colophon-modal" role="dialog" aria-modal="true" aria-labelledby="colophon-title">
+            <button
+              type="button"
+              className="feedback-modal-close"
+              aria-label="Close colophon"
+              onClick={() => setColophonOpen(false)}
+            >
+              <X size={18} />
+            </button>
+
+            <p className="colophon-kicker">Independent student utility</p>
+            <h2 id="colophon-title">🎓 Which Room Is Free?</h2>
+
+            <div className="colophon-copy">
+              <p>
+                <strong>Which Room Is Free?</strong> is an independent student-built utility for BITS Pilani,
+                Pilani Campus — made by a BITSian, for BITSians. It is not affiliated with, endorsed by, or
+                officially connected to BITS Pilani or AUGSD in any capacity.
+              </p>
+
+              <p>
+                💡 The <strong>primary idea and concept</strong> for this project are credited to
+                <span className="colophon-credit"> 🌟 Mehul Varshney 👑</span>, whose vision inspired the creation
+                of this utility.
+              </p>
+
+              <p>
+                ⚠️ Room availability is computed entirely from the official semester timetable published by AUGSD,
+                which reflects the scheduled academic calendar. In practice, faculty may conduct extra classes,
+                reschedule sessions, or cancel lectures on short notice — none of which will be reflected here in
+                real time. Treat this app as a strong starting point, not a guarantee.
+              </p>
+
+              <p>
+                🛠️ If you spot something outdated, wrong, or missing — a room that&apos;s consistently off, a course
+                that moved — reach out. This app stays accurate because students like you flag what&apos;s broken.
+              </p>
+
+              <p className="colophon-signoff">🫡 Built with care. Maintained independently. 🙌</p>
+            </div>
+          </article>
         </div>
       )}
 
