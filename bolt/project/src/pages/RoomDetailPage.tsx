@@ -205,7 +205,7 @@ export default function RoomDetailPage({ roomNumber, onNavigate, allRooms, allSc
       </main>
 
       <footer style={{ borderTop: '1px solid #161616', padding: '20px', textAlign: 'center' }}>
-        <p style={{ color: '#2A2A2A', fontSize: 12, margin: '0 0 6px' }}>Built for BITS Pilani · Sem 2 2025-26</p>
+        <p style={{ color: '#2A2A2A', fontSize: 12, margin: '0 0 6px' }}>Built for BITS Pilani · Sem 1 2026-27</p>
         <p className="credit-line" style={{ margin: 0 }}>Made by Atulya Gupta</p>
       </footer>
     </div>

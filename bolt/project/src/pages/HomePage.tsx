@@ -846,7 +846,7 @@ const handleInstall = async () => {
 
       {/* Footer */}
       <footer style={{ borderTop: '1px solid #161616', padding: '20px', textAlign: 'center' }}>
-        <p style={{ color: '#2A2A2A', fontSize: 12, margin: '0 0 4px' }}>Built for BITS Pilani · Sem 2 2025-26</p>
+        <p style={{ color: '#2A2A2A', fontSize: 12, margin: '0 0 4px' }}>Built for BITS Pilani · Sem 1 2026-27</p>
         {lastUpdated > 0 && (
           <p style={{ color: '#222', fontSize: 11, margin: '0 0 6px' }}>Last updated {secondsAgo}s ago</p>
         )}
