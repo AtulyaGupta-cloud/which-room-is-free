@@ -17,7 +17,6 @@ interface Props {
   roomNumber: string;
   onNavigate: (path: string) => void;
   allRooms: Room[];
-  allSchedules: RoomSchedule[];
 }
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -26,9 +25,10 @@ const DAY_SHORT: Record<string, string> = {
   Thursday: 'Thu', Friday: 'Fri', Saturday: 'Sat',
 };
 
-export default function RoomDetailPage({ roomNumber, onNavigate, allRooms, allSchedules }: Props) {
+export default function RoomDetailPage({ roomNumber, onNavigate, allRooms }: Props) {
   const [room, setRoom] = useState<Room | null>(null);
   const [roomSchedules, setRoomSchedules] = useState<RoomSchedule[]>([]);
+  const [todaySchedules, setTodaySchedules] = useState<RoomSchedule[]>([]);
   const [status, setStatus] = useState<RoomStatus | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -60,19 +60,31 @@ export default function RoomDetailPage({ roomNumber, onNavigate, allRooms, allSc
       if (!foundRoom) { setLoading(false); return; }
       setRoom(foundRoom);
 
-      let schedules = allSchedules.filter((s) => s.room_number === roomNumber);
-      if (schedules.length === 0 && allSchedules.length === 0) {
-        const { data } = await supabase.from('room_schedules').select('*').eq('room_number', roomNumber);
-        schedules = (data || []) as RoomSchedule[];
-      }
+      // Always load this room's schedule directly from the same table used by
+      // the main availability screen. This prevents stale/preloaded semester
+      // data (and Supabase's default row limit) from making the two views differ.
+      const [{ data: roomScheduleData }, { data: todayScheduleData }] = await Promise.all([
+        supabase
+          .from('room_schedules')
+          .select('*')
+          .eq('room_number', roomNumber)
+          .order('day_of_week')
+          .order('start_time'),
+        supabase
+          .from('room_schedules')
+          .select('*')
+          .eq('day_of_week', todayName),
+      ]);
+      const schedules = (roomScheduleData || []) as RoomSchedule[];
       setRoomSchedules(schedules);
+      setTodaySchedules((todayScheduleData || []) as RoomSchedule[]);
 
       const todayScheds = schedules.filter((s) => s.day_of_week === todayName);
       setStatus(computeRoomStatus(foundRoom, todayScheds));
       setLoading(false);
     }
     load();
-  }, [roomNumber, allRooms, allSchedules, todayName]);
+  }, [roomNumber, allRooms, todayName]);
 
   if (loading) {
     return (
@@ -184,7 +196,7 @@ export default function RoomDetailPage({ roomNumber, onNavigate, allRooms, allSc
             </h2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 12 }}>
               {nearbyRooms.map((nr) => {
-                const ns = computeRoomStatus(nr, allSchedules.filter((s) => s.day_of_week === todayName));
+                const ns = computeRoomStatus(nr, todaySchedules);
                 const nc = ns.isBusy ? '#FF3B3B' : '#00FF88';
                 return (
                   <div key={nr.id} onClick={() => onNavigate(`/room/${nr.room_number}`)}

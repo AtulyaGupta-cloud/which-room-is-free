@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import HomePage from './pages/HomePage';
 import RoomDetailPage from './pages/RoomDetailPage';
-import { supabase, Room, RoomSchedule } from './lib/supabase';
+import { supabase, Room } from './lib/supabase';
 
 function parsePath() {
   const path = window.location.pathname;
@@ -12,15 +12,10 @@ function parsePath() {
 export default function App() {
   const [route, setRoute] = useState(parsePath);
   const [allRooms, setAllRooms] = useState<Room[]>([]);
-  const [allSchedules, setAllSchedules] = useState<RoomSchedule[]>([]);
 
   const preload = useCallback(async () => {
-    const [{ data: rooms }, { data: schedules }] = await Promise.all([
-      supabase.from('rooms').select('*').order('room_number'),
-      supabase.from('room_schedules').select('*'),
-    ]);
+    const { data: rooms } = await supabase.from('rooms').select('*').order('room_number');
     if (rooms) setAllRooms(rooms as Room[]);
-    if (schedules) setAllSchedules(schedules as RoomSchedule[]);
   }, []);
 
   useEffect(() => {
@@ -45,7 +40,6 @@ export default function App() {
         roomNumber={route.roomNumber}
         onNavigate={navigate}
         allRooms={allRooms}
-        allSchedules={allSchedules}
       />
     );
   }
