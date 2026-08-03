@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, type FormEvent } from 'react';
-import { Search, X, Menu, LocateFixed, MapPin, Heart, ChevronDown, Star } from 'lucide-react';
+import { Search, X, Menu, LocateFixed, MapPin, Heart, ChevronDown, Star, Share } from 'lucide-react';
 import { supabase, Room, RoomSchedule } from '../lib/supabase';
 import {
   Coordinates,
@@ -48,6 +48,16 @@ const BUILDING_FILTER_MAP: Record<string, string> = {
   'NEW WORKSHOP': 'New Workshop',
 };
 
+function isIOSDevice() {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent)
+    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
+function isRunningStandalone() {
+  return window.matchMedia('(display-mode: standalone)').matches
+    || Boolean((navigator as Navigator & { standalone?: boolean }).standalone);
+}
+
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const FAVORITES_KEY = 'which-room-is-free:favorites';
 
@@ -94,7 +104,8 @@ export default function HomePage({ onNavigate }: Props) {
   const [lastUpdated, setLastUpdated] = useState(0);
   const [todaySchedules, setTodaySchedules] = useState<RoomSchedule[]>([]);
   const [installPrompt, setInstallPrompt] = useState<any>(null);
-const [isInstallable, setIsInstallable] = useState(false);
+  const [isInstallable, setIsInstallable] = useState(false);
+  const [iosInstallOpen, setIosInstallOpen] = useState(false);
   const [userLocation, setUserLocation] = useState<Coordinates | null>(null);
   const [locationAccuracy, setLocationAccuracy] = useState<number | null>(null);
   const [locationStatus, setLocationStatus] = useState<LocationStatus>('idle');
@@ -117,6 +128,10 @@ useEffect(() => {
 }, []);
 
 const handleInstall = async () => {
+  if (isIOSDevice()) {
+    setIosInstallOpen(true);
+    return;
+  }
   if (!installPrompt) return;
   installPrompt.prompt();
   const { outcome } = await installPrompt.userChoice;
@@ -125,6 +140,8 @@ const handleInstall = async () => {
     setIsInstallable(false);
   }
 };
+
+  const showInstallButton = !isRunningStandalone() && (isInstallable || isIOSDevice());
 
   const fetchWalkingRoutes = async (location: Coordinates) => {
     const { data, error } = await supabase.functions.invoke('walking-distances', {
@@ -322,7 +339,7 @@ const handleInstall = async () => {
     <Menu size={24} />
   </button>
 
-  {isInstallable && (
+  {showInstallButton && (
     <button
       onClick={handleInstall}
       style={{
@@ -788,6 +805,41 @@ const handleInstall = async () => {
                   Continue to WhatsApp
                 </button>
               </form>
+          </section>
+        </div>
+      )}
+
+      {iosInstallOpen && (
+        <div className="feedback-modal-layer" role="presentation">
+          <button
+            type="button"
+            className="feedback-modal-backdrop"
+            aria-label="Close install instructions"
+            onClick={() => setIosInstallOpen(false)}
+          />
+          <section className="feedback-modal ios-install-modal" role="dialog" aria-modal="true" aria-labelledby="ios-install-title">
+            <button
+              type="button"
+              className="feedback-modal-close"
+              aria-label="Close install instructions"
+              onClick={() => setIosInstallOpen(false)}
+            >
+              <X size={18} />
+            </button>
+
+            <div className="ios-install-icon" aria-hidden="true">📲</div>
+            <h2 id="ios-install-title">Install on iPhone or iPad</h2>
+            <p className="feedback-intro">Add Which Room Is Free to your Home Screen in three quick steps.</p>
+
+            <ol className="ios-install-steps">
+              <li><span>1</span><p>Open this page in <strong>Safari</strong>.</p></li>
+              <li><span>2</span><p>Tap the <strong>Share</strong> button <Share size={17} aria-hidden="true" /> in Safari&apos;s toolbar.</p></li>
+              <li><span>3</span><p>Choose <strong>Add to Home Screen</strong>, then tap <strong>Add</strong>.</p></li>
+            </ol>
+
+            <button type="button" className="feedback-submit" onClick={() => setIosInstallOpen(false)}>
+              Got it
+            </button>
           </section>
         </div>
       )}

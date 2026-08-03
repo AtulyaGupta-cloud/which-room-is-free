@@ -2109,6 +2109,57 @@ input { caret-color: #7C3AED; }
   font-size: 24px;
 }
 
+.ios-install-icon {
+  margin-bottom: 10px;
+  font-size: 34px;
+}
+
+.ios-install-steps {
+  display: grid;
+  gap: 12px;
+  margin: 0 0 22px;
+  padding: 0;
+  list-style: none;
+}
+
+.ios-install-steps li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid #292929;
+  border-radius: 12px;
+  background: #181818;
+}
+
+.ios-install-steps li > span {
+  display: grid;
+  flex: 0 0 28px;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(124, 58, 237, 0.18);
+  color: #A78BFA;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.ios-install-steps p {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 0;
+  color: #AAA;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.ios-install-steps strong {
+  color: #FFF;
+}
+
 .feedback-modal-close {
   position: absolute;
   z-index: 1;
