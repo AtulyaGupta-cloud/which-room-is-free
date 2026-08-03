@@ -71,6 +71,8 @@ function snapToHourSlot(): string {
 
 interface Props {
   onNavigate: (path: string) => void;
+  initialDay?: string;
+  initialTime?: string;
 }
 
 type LocationStatus = 'idle' | 'requesting' | 'ready' | 'error';
@@ -80,14 +82,14 @@ interface WalkingRoute {
   durationSeconds: number;
 }
 
-export default function HomePage({ onNavigate }: Props) {
+export default function HomePage({ onNavigate, initialDay, initialTime }: Props) {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [statuses, setStatuses] = useState<RoomStatus[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<FilterType>('ALL');
   const [search, setSearch] = useState('');
-  const [selectedDay, setSelectedDay] = useState<string>(getISTDayName());
-  const [selectedTime, setSelectedTime] = useState<string>(snapToHourSlot());
+  const [selectedDay, setSelectedDay] = useState<string>(initialDay || getISTDayName());
+  const [selectedTime, setSelectedTime] = useState<string>(initialTime || snapToHourSlot());
   const [menuOpen, setMenuOpen] = useState(false);
   const [savedRoomsOpen, setSavedRoomsOpen] = useState(false);
   const [liveTime, setLiveTime] = useState(getISTTime());
@@ -212,9 +214,9 @@ const handleInstall = async () => {
 
   // Re-sync day + time to "right now" every time the page is opened/reloaded
   useEffect(() => {
-    setSelectedDay(getISTDayName());
-    setSelectedTime(snapToHourSlot());
-  }, []);
+    if (!initialDay) setSelectedDay(getISTDayName());
+    if (!initialTime) setSelectedTime(snapToHourSlot());
+  }, [initialDay, initialTime]);
 
   const fetchData = useCallback(async () => {
     const [{ data: allRooms }, { data: schedules }] = await Promise.all([
@@ -629,7 +631,7 @@ const handleInstall = async () => {
                   walkingDuration={walkingRoute?.durationSeconds ?? null}
                   isFavorite={favoriteRooms.includes(s.room.room_number)}
                   onToggleFavorite={() => toggleFavorite(s.room.room_number)}
-                  onClick={() => onNavigate(`/room/${s.room.room_number}`)}
+                  onClick={() => onNavigate(`/room/${encodeURIComponent(s.room.room_number)}?day=${encodeURIComponent(selectedDay)}&time=${encodeURIComponent(selectedTime)}`)}
                 />
               );
             })}
@@ -688,7 +690,7 @@ const handleInstall = async () => {
                       className="saved-room-button"
                       onClick={() => {
                         setMenuOpen(false);
-                        onNavigate(`/room/${roomNumber}`);
+                        onNavigate(`/room/${encodeURIComponent(roomNumber)}?day=${encodeURIComponent(selectedDay)}&time=${encodeURIComponent(selectedTime)}`);
                       }}
                     >
                       <span>
