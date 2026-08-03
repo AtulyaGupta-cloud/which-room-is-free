@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { ArrowLeft, Share2 } from 'lucide-react';
 import { supabase, Room, RoomSchedule } from '../lib/supabase';
 import {
-  computeRoomStatusAtTime,
+  computeRoomStatus,
   RoomStatus,
   getISTDayName,
   formatTimeStr,
@@ -17,8 +17,6 @@ interface Props {
   roomNumber: string;
   onNavigate: (path: string) => void;
   allRooms: Room[];
-  selectedDay?: string;
-  selectedTime?: string;
 }
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -27,17 +25,15 @@ const DAY_SHORT: Record<string, string> = {
   Thursday: 'Thu', Friday: 'Fri', Saturday: 'Sat',
 };
 
-export default function RoomDetailPage({ roomNumber, onNavigate, allRooms, selectedDay, selectedTime }: Props) {
+export default function RoomDetailPage({ roomNumber, onNavigate, allRooms }: Props) {
   const [room, setRoom] = useState<Room | null>(null);
   const [roomSchedules, setRoomSchedules] = useState<RoomSchedule[]>([]);
-  const [daySchedules, setDaySchedules] = useState<RoomSchedule[]>([]);
+  const [todaySchedules, setTodaySchedules] = useState<RoomSchedule[]>([]);
   const [status, setStatus] = useState<RoomStatus | null>(null);
   const [loading, setLoading] = useState(true);
 
   const todayName = getISTDayName();
-  const viewDay = selectedDay && [...DAYS, 'Sunday'].includes(selectedDay) ? selectedDay : todayName;
-  const viewTime = selectedTime && /^\d{2}:\d{2}$/.test(selectedTime) ? selectedTime : getCurrentTimeStr();
-  const homeUrl = `/?day=${encodeURIComponent(viewDay)}&time=${encodeURIComponent(viewTime)}`;
+  const now = getCurrentTimeStr();
 
   const shareOnWhatsApp = () => {
     if (!room || !status) return;
@@ -48,8 +44,8 @@ export default function RoomDetailPage({ roomNumber, onNavigate, allRooms, selec
       ? '🟢 FREE for the rest of the day'
       : `🟢 FREE until ${formatTimeStr(status.freeUntil!)}`;
     const courseLine = status.currentCourse ? `\nCourse: ${status.currentCourse}` : '';
-    const roomUrl = `${window.location.origin}/room/${encodeURIComponent(room.room_number)}?day=${encodeURIComponent(viewDay)}&time=${encodeURIComponent(viewTime)}`;
-    const message = `🏫 Room ${room.room_number} · ${room.building}\n${viewDay} at ${formatTimeStr(viewTime)}\n${statusLine}${courseLine}\n\nSee schedule: ${roomUrl}\nShared from Which Room Is Free?`;
+    const roomUrl = `${window.location.origin}/room/${encodeURIComponent(room.room_number)}`;
+    const message = `🏫 Room ${room.room_number} · ${room.building}\n${statusLine}${courseLine}\n\nSee schedule: ${roomUrl}\nShared from Which Room Is Free?`;
 
     window.open(`https://wa.me/?text=${encodeURIComponent(message)}`, '_blank', 'noopener,noreferrer');
   };
@@ -67,7 +63,7 @@ export default function RoomDetailPage({ roomNumber, onNavigate, allRooms, selec
       // Always load this room's schedule directly from the same table used by
       // the main availability screen. This prevents stale/preloaded semester
       // data (and Supabase's default row limit) from making the two views differ.
-      const [{ data: roomScheduleData }, { data: dayScheduleData }] = await Promise.all([
+      const [{ data: roomScheduleData }, { data: todayScheduleData }] = await Promise.all([
         supabase
           .from('room_schedules')
           .select('*')
@@ -77,18 +73,18 @@ export default function RoomDetailPage({ roomNumber, onNavigate, allRooms, selec
         supabase
           .from('room_schedules')
           .select('*')
-          .eq('day_of_week', viewDay),
+          .eq('day_of_week', todayName),
       ]);
       const schedules = (roomScheduleData || []) as RoomSchedule[];
       setRoomSchedules(schedules);
-      setDaySchedules((dayScheduleData || []) as RoomSchedule[]);
+      setTodaySchedules((todayScheduleData || []) as RoomSchedule[]);
 
-      const selectedDaySchedules = schedules.filter((s) => s.day_of_week === viewDay);
-      setStatus(computeRoomStatusAtTime(foundRoom, selectedDaySchedules, viewTime));
+      const todayScheds = schedules.filter((s) => s.day_of_week === todayName);
+      setStatus(computeRoomStatus(foundRoom, todayScheds));
       setLoading(false);
     }
     load();
-  }, [roomNumber, allRooms, viewDay, viewTime]);
+  }, [roomNumber, allRooms, todayName]);
 
   if (loading) {
     return (
@@ -103,7 +99,7 @@ export default function RoomDetailPage({ roomNumber, onNavigate, allRooms, selec
     return (
       <div style={{ minHeight: '100vh', background: '#0A0A0A', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 16, fontFamily: 'Inter, -apple-system, sans-serif' }}>
         <p style={{ color: '#888', fontSize: 18 }}>Room not found</p>
-        <button onClick={() => onNavigate(homeUrl)} style={{ color: '#7C3AED', background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, fontFamily: 'inherit' }}>Go back home</button>
+        <button onClick={() => onNavigate('/')} style={{ color: '#7C3AED', background: 'none', border: 'none', cursor: 'pointer', fontSize: 14, fontFamily: 'inherit' }}>Go back home</button>
       </div>
     );
   }
@@ -111,7 +107,7 @@ export default function RoomDetailPage({ roomNumber, onNavigate, allRooms, selec
   const isBusy = status?.isBusy ?? false;
   const color = isBusy ? '#FF3B3B' : '#00FF88';
   const weekSchedule = getWeekSchedule(roomNumber, roomSchedules);
-  const selectedDaySlots = weekSchedule[viewDay] || [];
+  const todaySlots = weekSchedule[todayName] || [];
 
   const nearbyRooms = allRooms
     .filter((r) => r.building === room.building && r.room_number !== roomNumber)
@@ -127,7 +123,7 @@ export default function RoomDetailPage({ roomNumber, onNavigate, allRooms, selec
       }}>
         <div style={{ maxWidth: 900, margin: '0 auto', padding: '14px 20px', display: 'flex', alignItems: 'center', gap: 14 }}>
           <button
-            onClick={() => onNavigate(homeUrl)}
+            onClick={() => onNavigate('/')}
             style={{ background: '#181818', border: '1px solid #262626', borderRadius: 10, width: 44, height: 44, cursor: 'pointer', color: '#FFFFFF', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, transition: 'background 0.2s' }}
             onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#222'; }}
             onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = '#181818'; }}
@@ -179,16 +175,16 @@ export default function RoomDetailPage({ roomNumber, onNavigate, allRooms, selec
         {/* Today's Timeline */}
         <section style={{ marginBottom: 32 }}>
           <h2 style={{ fontSize: 15, fontWeight: 700, color: '#FFFFFF', margin: '0 0 14px' }}>
-            Selected Schedule
-            <span style={{ color: '#333', fontWeight: 400, fontSize: 13, marginLeft: 8 }}>{viewDay} · {formatTimeStr(viewTime)}</span>
+            Today's Schedule
+            <span style={{ color: '#333', fontWeight: 400, fontSize: 13, marginLeft: 8 }}>{todayName}</span>
           </h2>
-          <Timeline schedules={selectedDaySlots} currentTime={viewTime} />
+          <Timeline schedules={todaySlots} currentTime={now} />
         </section>
 
         {/* Week Table */}
         <section style={{ marginBottom: 32 }}>
           <h2 style={{ fontSize: 15, fontWeight: 700, color: '#FFFFFF', margin: '0 0 14px' }}>Full Week</h2>
-          <WeekTable weekSchedule={weekSchedule} todayName={viewDay} />
+          <WeekTable weekSchedule={weekSchedule} todayName={todayName} />
         </section>
 
         {/* Nearby Rooms */}
@@ -200,10 +196,10 @@ export default function RoomDetailPage({ roomNumber, onNavigate, allRooms, selec
             </h2>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 12 }}>
               {nearbyRooms.map((nr) => {
-                const ns = computeRoomStatusAtTime(nr, daySchedules, viewTime);
+                const ns = computeRoomStatus(nr, todaySchedules);
                 const nc = ns.isBusy ? '#FF3B3B' : '#00FF88';
                 return (
-                  <div key={nr.id} onClick={() => onNavigate(`/room/${encodeURIComponent(nr.room_number)}?day=${encodeURIComponent(viewDay)}&time=${encodeURIComponent(viewTime)}`)}
+                  <div key={nr.id} onClick={() => onNavigate(`/room/${nr.room_number}`)}
                     style={{ background: '#111', border: `1px solid ${nc}22`, borderRadius: 12, padding: '14px 16px', cursor: 'pointer', transition: 'transform 0.18s' }}
                     onMouseEnter={(e) => { (e.currentTarget as HTMLDivElement).style.transform = 'translateY(-2px)'; }}
                     onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.transform = 'translateY(0)'; }}

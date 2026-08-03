@@ -5,21 +5,8 @@ import { supabase, Room } from './lib/supabase';
 
 function parsePath() {
   const path = window.location.pathname;
-  const params = new URLSearchParams(window.location.search);
-  if (path.startsWith('/room/')) {
-    return {
-      page: 'room' as const,
-      roomNumber: decodeURIComponent(path.slice(6)),
-      selectedDay: params.get('day') || undefined,
-      selectedTime: params.get('time') || undefined,
-    };
-  }
-  return {
-    page: 'home' as const,
-    roomNumber: '',
-    selectedDay: params.get('day') || undefined,
-    selectedTime: params.get('time') || undefined,
-  };
+  if (path.startsWith('/room/')) return { page: 'room' as const, roomNumber: decodeURIComponent(path.slice(6)) };
+  return { page: 'home' as const, roomNumber: '' };
 }
 
 export default function App() {
@@ -53,11 +40,9 @@ export default function App() {
         roomNumber={route.roomNumber}
         onNavigate={navigate}
         allRooms={allRooms}
-        selectedDay={route.selectedDay}
-        selectedTime={route.selectedTime}
       />
     );
   }
 
-  return <HomePage onNavigate={navigate} initialDay={route.selectedDay} initialTime={route.selectedTime} />;
+  return <HomePage onNavigate={navigate} />;
 }
