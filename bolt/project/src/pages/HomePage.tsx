@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, type FormEvent } from 'react';
-import { Search, X, Menu, LocateFixed, MapPin, Heart, ChevronDown, Star, Share } from 'lucide-react';
+import { Search, X, Menu, LocateFixed, MapPin, Heart, ChevronDown, Star, Share, ExternalLink } from 'lucide-react';
 import { supabase, Room, RoomSchedule } from '../lib/supabase';
 import {
   Coordinates,
@@ -114,6 +114,8 @@ export default function HomePage({ onNavigate }: Props) {
   const [favoriteRooms, setFavoriteRooms] = useState<string[]>(getStoredFavorites);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [colophonOpen, setColophonOpen] = useState(false);
+  const [campusMapsOpen, setCampusMapsOpen] = useState(false);
+  const [activeMap, setActiveMap] = useState<'nab' | 'institute'>('nab');
   const [feedbackRating, setFeedbackRating] = useState(0);
   const [feedbackText, setFeedbackText] = useState('');
 
@@ -731,6 +733,17 @@ const handleInstall = async () => {
 
             <button
               type="button"
+              className="campus-maps-menu-button"
+              onClick={() => {
+                setMenuOpen(false);
+                setCampusMapsOpen(true);
+              }}
+            >
+              Campus Maps
+            </button>
+
+            <button
+              type="button"
               className="colophon-menu-button"
               onClick={() => {
                 setMenuOpen(false);
@@ -840,6 +853,68 @@ const handleInstall = async () => {
             <button type="button" className="feedback-submit" onClick={() => setIosInstallOpen(false)}>
               Got it
             </button>
+          </section>
+        </div>
+      )}
+
+      {campusMapsOpen && (
+        <div className="feedback-modal-layer campus-maps-layer" role="presentation">
+          <button
+            type="button"
+            className="feedback-modal-backdrop"
+            aria-label="Close campus maps"
+            onClick={() => setCampusMapsOpen(false)}
+          />
+          <section className="feedback-modal campus-maps-modal" role="dialog" aria-modal="true" aria-labelledby="campus-maps-title">
+            <button
+              type="button"
+              className="feedback-modal-close"
+              aria-label="Close campus maps"
+              onClick={() => setCampusMapsOpen(false)}
+            >
+              <X size={18} />
+            </button>
+
+            <p className="campus-maps-kicker">Find your room</p>
+            <h2 id="campus-maps-title">Campus Maps</h2>
+            <p className="feedback-intro">Choose a map below. On mobile, swipe to pan or open it full size to zoom.</p>
+
+            <div className="campus-map-tabs" role="tablist" aria-label="Campus map">
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activeMap === 'nab'}
+                className={activeMap === 'nab' ? 'is-active' : ''}
+                onClick={() => setActiveMap('nab')}
+              >
+                NAB
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activeMap === 'institute'}
+                className={activeMap === 'institute' ? 'is-active' : ''}
+                onClick={() => setActiveMap('institute')}
+              >
+                Institute Building
+              </button>
+            </div>
+
+            <div className={`campus-map-canvas ${activeMap === 'institute' ? 'is-institute' : ''}`}>
+              <img
+                src={activeMap === 'nab' ? '/nab-campus-map.png' : '/institute-building-map.png'}
+                alt={activeMap === 'nab' ? 'NAB room and pathway map' : 'Institute Building plan with room numbers'}
+              />
+            </div>
+
+            <a
+              className="campus-map-fullsize"
+              href={activeMap === 'nab' ? '/nab-campus-map.png' : '/institute-building-map.png'}
+              target="_blank"
+              rel="noreferrer"
+            >
+              Open full-size map <ExternalLink size={15} aria-hidden="true" />
+            </a>
           </section>
         </div>
       )}

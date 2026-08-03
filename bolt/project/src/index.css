@@ -1980,6 +1980,19 @@ input { caret-color: #7C3AED; }
   cursor: pointer;
 }
 
+.campus-maps-menu-button {
+  width: 100%;
+  margin-top: 9px;
+  padding: 13px 14px;
+  border: 1px solid rgba(34, 211, 238, 0.36);
+  border-radius: 12px;
+  background: rgba(8, 145, 178, 0.1);
+  color: #A5F3FC;
+  font: 800 13px inherit;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+}
+
 .colophon-menu-button {
   width: 100%;
   margin-top: 9px;
@@ -2158,6 +2171,100 @@ input { caret-color: #7C3AED; }
 
 .ios-install-steps strong {
   color: #FFF;
+}
+
+.campus-maps-modal {
+  width: min(1180px, 100%);
+  padding: 24px;
+}
+
+.campus-maps-kicker {
+  margin: 0 44px 6px 0;
+  color: #67E8F9;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.campus-map-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.campus-map-tabs button {
+  padding: 9px 15px;
+  border: 1px solid rgba(72, 131, 159, 0.36);
+  border-radius: 999px;
+  background: rgba(8, 31, 49, 0.86);
+  color: #7894A5;
+  font: 800 12px inherit;
+  cursor: pointer;
+}
+
+.campus-map-tabs button.is-active {
+  border-color: #22D3EE;
+  background: linear-gradient(135deg, #0891B2, #2563EB);
+  color: #FFF;
+  box-shadow: 0 0 18px rgba(34, 211, 238, 0.18);
+}
+
+.campus-map-canvas {
+  max-height: min(64vh, 720px);
+  overflow: auto;
+  border: 1px solid rgba(103, 232, 249, 0.24);
+  border-radius: 14px;
+  background: #FFF;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.campus-map-canvas img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.campus-map-fullsize {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 13px;
+  color: #67E8F9;
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+@media (max-width: 640px) {
+  .campus-maps-layer {
+    padding: 10px;
+  }
+
+  .campus-maps-modal {
+    max-height: calc(100vh - 20px);
+    padding: 18px;
+  }
+
+  .campus-map-tabs {
+    padding-right: 38px;
+  }
+
+  .campus-map-tabs button {
+    flex: 1;
+    padding-inline: 9px;
+  }
+
+  .campus-map-canvas img {
+    width: auto;
+    max-width: none;
+    height: 52vh;
+  }
+
+  .campus-map-canvas.is-institute img {
+    height: 64vh;
+  }
 }
 
 .feedback-modal-close {
