@@ -2728,6 +2728,28 @@ input { caret-color: #7C3AED; }
   right: 4%;
 }
 
+.digital-theme .landing-hero.has-visual .timetable-update-note {
+  top: auto !important;
+  right: auto;
+  bottom: 2px !important;
+  left: 50%;
+  z-index: 4;
+  width: max-content;
+  max-width: calc(100% - 24px);
+  margin: 0;
+  padding: 5px 11px;
+  transform: translateX(-50%);
+  border: 1px solid rgba(103, 232, 249, 0.2);
+  border-radius: 999px;
+  background: rgba(3, 18, 30, 0.78);
+  color: #88AFC2;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.025em;
+  white-space: nowrap;
+  backdrop-filter: blur(8px);
+}
+
 @media (max-width: 600px) {
   .digital-theme .home-main {
     padding-top: 0 !important;
@@ -2768,6 +2790,15 @@ input { caret-color: #7C3AED; }
 
   .digital-theme .landing-hero.has-visual .credit-line {
     right: 5px;
+  }
+
+  .digital-theme .landing-hero.has-visual .timetable-update-note {
+    top: auto !important;
+    bottom: -1px !important;
+    left: 50%;
+    max-width: calc(100% - 16px);
+    padding: 4px 8px;
+    font-size: 7px !important;
   }
 
   .digital-theme .landing-hero.has-visual + .filter-scroll {
