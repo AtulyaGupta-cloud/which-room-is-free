@@ -2698,6 +2698,171 @@ input { caret-color: #7C3AED; }
 ::-webkit-scrollbar-track { background: #0A0A0A; }
 ::-webkit-scrollbar-thumb { background: #242424; border-radius: 3px; }
 
+.admin-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    linear-gradient(rgba(55, 160, 196, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(55, 160, 196, 0.045) 1px, transparent 1px),
+    radial-gradient(circle at 50% 10%, rgba(8, 145, 178, 0.16), transparent 34rem),
+    #05111D;
+  background-size: 24px 24px, 24px 24px, auto, auto;
+  color: #E6F8FF;
+  font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.admin-login-card,
+.admin-dashboard {
+  width: min(480px, 100%);
+  padding: 30px;
+  border: 1px solid rgba(103, 232, 249, 0.22);
+  border-radius: 20px;
+  background: rgba(5, 23, 37, 0.92);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.42);
+}
+
+.admin-kicker {
+  margin: 0 0 7px;
+  color: #67E8F9;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.admin-page h1 {
+  margin: 0 0 10px;
+  font-size: 30px;
+}
+
+.admin-login-card > p:not(.admin-kicker):not(.admin-message),
+.admin-privacy-note {
+  color: #7894A5;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.admin-login-card form {
+  display: grid;
+  gap: 9px;
+  margin: 24px 0 14px;
+}
+
+.admin-login-card label {
+  color: #A7C4D2;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.admin-login-card input {
+  min-height: 46px;
+  padding: 11px 13px;
+  border: 1px solid rgba(72, 131, 159, 0.42);
+  border-radius: 11px;
+  outline: none;
+  background: #071F31;
+  color: #FFF;
+  font: 14px inherit;
+}
+
+.admin-login-card input:focus {
+  border-color: #22D3EE;
+  box-shadow: 0 0 0 3px rgba(34, 211, 238, 0.1);
+}
+
+.admin-login-card button,
+.admin-dashboard header button {
+  min-height: 42px;
+  padding: 10px 14px;
+  border: 1px solid rgba(34, 211, 238, 0.45);
+  border-radius: 10px;
+  background: linear-gradient(135deg, #0891B2, #2563EB);
+  color: #FFF;
+  font: 800 12px inherit;
+  cursor: pointer;
+}
+
+.admin-message {
+  color: #A5F3FC;
+  font-size: 12px;
+}
+
+.admin-page a {
+  color: #67E8F9;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.admin-dashboard header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.admin-dashboard header button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  background: rgba(8, 31, 49, 0.9);
+}
+
+.admin-live-card {
+  display: flex;
+  align-items: center;
+  gap: 17px;
+  margin: 26px 0 18px;
+  padding: 22px;
+  border: 1px solid rgba(0, 255, 136, 0.28);
+  border-radius: 16px;
+  background: rgba(0, 255, 136, 0.055);
+}
+
+.admin-live-icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  background: rgba(0, 255, 136, 0.12);
+  color: #00FF88;
+}
+
+.admin-live-card p,
+.admin-live-card small {
+  display: block;
+  margin: 0;
+  color: #7894A5;
+  font-size: 11px;
+}
+
+.admin-live-card strong {
+  display: block;
+  margin: 2px 0;
+  color: #00FF88;
+  font-size: 40px;
+  line-height: 1;
+}
+
+.admin-loading {
+  color: #7894A5;
+}
+
+@media (max-width: 520px) {
+  .admin-login-card,
+  .admin-dashboard {
+    padding: 22px;
+  }
+
+  .admin-dashboard header {
+    align-items: center;
+  }
+}
+
 /* Final authoritative DIGITAL hero layout; keep after all legacy responsive rules. */
 .digital-theme .home-main {
   padding-top: 12px !important;
