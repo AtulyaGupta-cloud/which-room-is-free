@@ -227,7 +227,7 @@ export default function RoomDetailPage({ roomNumber, onNavigate, allRooms }: Pro
 function Timeline({ schedules, currentTime }: { schedules: RoomSchedule[]; currentTime: string }) {
   const nowMins = timeToMinutes(currentTime);
   const START = 8 * 60;
-  const END = 18 * 60;
+  const END = 19 * 60;
   const TOTAL = END - START;
 
   return (
@@ -235,7 +235,7 @@ function Timeline({ schedules, currentTime }: { schedules: RoomSchedule[]; curre
       <div style={{ position: 'relative', minWidth: 560 }}>
         {/* Hour labels row */}
         <div style={{ position: 'relative', height: 20, marginBottom: 6 }}>
-          {Array.from({ length: 11 }, (_, i) => {
+          {Array.from({ length: 12 }, (_, i) => {
             const hour = 8 + i;
             const pct = (i * 60 / TOTAL) * 100;
             const label = hour > 12 ? `${hour - 12}PM` : hour === 12 ? '12PM' : `${hour}AM`;

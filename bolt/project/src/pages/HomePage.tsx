@@ -70,12 +70,12 @@ function getStoredFavorites(): string[] {
   }
 }
 
-// Snap any current time to the nearest class-hour slot start (08:00 to 17:00)
+// Snap any current time to the nearest class-hour slot start (08:00 to 18:00)
 function snapToHourSlot(): string {
   const now = getCurrentTimeStr();
   const [h] = now.split(':').map(Number);
   if (h < 8) return '08:00';
-  if (h >= 18) return '17:00';
+  if (h >= 19) return '18:00';
   return `${String(h).padStart(2, '0')}:00`;
 }
 
@@ -541,6 +541,7 @@ const handleInstall = async () => {
             <option value="15:00">Hour 8 · 3:00 PM – 4:00 PM</option>
             <option value="16:00">Hour 9 · 4:00 PM – 5:00 PM</option>
             <option value="17:00">Hour 10 · 5:00 PM – 6:00 PM</option>
+            <option value="18:00">Hour 11 · 6:00 PM – 7:00 PM</option>
           </select>
         </div>
 

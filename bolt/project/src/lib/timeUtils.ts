@@ -11,6 +11,7 @@ export const HOUR_SLOTS: Record<number, { start: string; end: string; label: str
   8: { start: '15:00', end: '16:00', label: '3:00 PM – 4:00 PM' },
   9: { start: '16:00', end: '17:00', label: '4:00 PM – 5:00 PM' },
   10: { start: '17:00', end: '18:00', label: '5:00 PM – 6:00 PM' },
+  11: { start: '18:00', end: '19:00', label: '6:00 PM – 7:00 PM' },
 };
 
 export function getISTTime(): Date {
