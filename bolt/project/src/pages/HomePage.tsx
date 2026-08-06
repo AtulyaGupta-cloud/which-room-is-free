@@ -955,12 +955,6 @@ const handleInstall = async () => {
               </p>
 
               <p>
-                💡 The <strong>primary idea and concept</strong> for this project are credited to
-                <span className="colophon-credit"> 🌟 Mehul Varshney 👑</span>, whose vision inspired the creation
-                of this utility.
-              </p>
-
-              <p>
                 ⚠️ Room availability is computed entirely from the official semester timetable published by AUGSD,
                 which reflects the scheduled academic calendar. In practice, faculty may conduct extra classes,
                 reschedule sessions, or cancel lectures on short notice — none of which will be reflected here in
