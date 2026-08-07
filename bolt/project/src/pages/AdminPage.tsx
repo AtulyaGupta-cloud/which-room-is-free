@@ -1,15 +1,23 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import type { Session } from '@supabase/supabase-js';
-import { Activity, LogOut } from 'lucide-react';
+import { LogOut, TrendingUp, Users } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { getUsageDeviceId, isUsageExcluded, setUsageExcluded } from '../lib/usageTracking';
+
+interface UsageStats {
+  activityDate: string;
+  uniqueVisitors: number;
+  peakConcurrent: number;
+}
 
 export default function AdminPage() {
   const [session, setSession] = useState<Session | null>(null);
   const [authReady, setAuthReady] = useState(false);
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
-  const [onlineCount, setOnlineCount] = useState(0);
-  const [presenceReady, setPresenceReady] = useState(false);
+  const [stats, setStats] = useState<UsageStats | null>(null);
+  const [statsError, setStatsError] = useState('');
+  const [deviceExcluded, setDeviceExcludedState] = useState(isUsageExcluded);
 
   const isAdmin = session?.user.app_metadata?.role === 'admin';
 
@@ -30,25 +38,37 @@ export default function AdminPage() {
   useEffect(() => {
     if (!isAdmin) return;
 
-    const channel = supabase.channel('which-room-is-free-online');
-    channel
-      .on('presence', { event: 'sync' }, () => {
-        const state = channel.presenceState();
-        const connectedVisitors = Object.values(state).reduce(
-          (total, connections) => total + connections.length,
-          0
-        );
-        setOnlineCount(connectedVisitors);
-        setPresenceReady(true);
-      })
-      .subscribe((status) => {
-        if (status === 'SUBSCRIBED') setPresenceReady(true);
-      });
+    const loadStats = async () => {
+      const { data, error } = await supabase.functions.invoke('usage-stats');
+      if (error || !data) {
+        setStatsError('Could not load usage statistics. Please try again.');
+        return;
+      }
+      setStats(data as UsageStats);
+      setStatsError('');
+    };
+
+    void loadStats();
+    const interval = window.setInterval(() => void loadStats(), 60_000);
 
     return () => {
-      void supabase.removeChannel(channel);
+      window.clearInterval(interval);
     };
   }, [isAdmin]);
+
+  const toggleDeviceExclusion = async () => {
+    const next = !deviceExcluded;
+    setUsageExcluded(next);
+    setDeviceExcludedState(next);
+
+    if (next) {
+      await supabase.functions.invoke('track-usage', {
+        body: { deviceId: getUsageDeviceId(), exclude: true },
+      });
+      const { data } = await supabase.functions.invoke('usage-stats');
+      if (data) setStats(data as UsageStats);
+    }
+  };
 
   const requestSignIn = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -69,7 +89,7 @@ export default function AdminPage() {
       <main className="admin-page">
         <section className="admin-login-card">
           <p className="admin-kicker">Private owner dashboard</p>
-          <h1>Live app activity</h1>
+          <h1>App usage</h1>
           <p>Sign in using your approved admin email. No password is required.</p>
           <form onSubmit={requestSignIn}>
             <label htmlFor="admin-email">Email address</label>
@@ -110,24 +130,51 @@ export default function AdminPage() {
         <header>
           <div>
             <p className="admin-kicker">Which Room Is Free?</p>
-            <h1>Live activity</h1>
+            <h1>Today&apos;s activity</h1>
           </div>
           <button type="button" onClick={() => void supabase.auth.signOut()}>
             <LogOut size={15} /> Sign out
           </button>
         </header>
 
-        <div className="admin-live-card">
-          <span className="admin-live-icon"><Activity size={22} /></span>
-          <div>
-            <p>Students online now</p>
-            <strong>{presenceReady ? onlineCount : '—'}</strong>
-            <small>{presenceReady ? 'Updates automatically' : 'Connecting to live presence…'}</small>
+        <div className="admin-stats-grid">
+          <div className="admin-live-card">
+            <span className="admin-live-icon"><Users size={22} /></span>
+            <div>
+              <p>Users today</p>
+              <strong>{stats ? stats.uniqueVisitors : '—'}</strong>
+              <small>Unique anonymous devices</small>
+            </div>
+          </div>
+          <div className="admin-live-card admin-peak-card">
+            <span className="admin-live-icon"><TrendingUp size={22} /></span>
+            <div>
+              <p>Maximum online today</p>
+              <strong>{stats ? stats.peakConcurrent : '—'}</strong>
+              <small>Highest simultaneous usage</small>
+            </div>
           </div>
         </div>
 
+        {statsError && <p className="admin-error">{statsError}</p>}
+
+        <div className="admin-device-control">
+          <div>
+            <strong>Exclude this device</strong>
+            <small>{deviceExcluded ? 'This phone/browser is not counted.' : 'This phone/browser currently counts like a visitor.'}</small>
+          </div>
+          <button
+            type="button"
+            className={deviceExcluded ? 'is-excluded' : ''}
+            aria-pressed={deviceExcluded}
+            onClick={() => void toggleDeviceExclusion()}
+          >
+            {deviceExcluded ? 'Excluded' : 'Exclude'}
+          </button>
+        </div>
+
         <p className="admin-privacy-note">
-          This is an anonymous count of connected app sessions. No names, emails, phone numbers or locations are collected.
+          Counts reset at midnight IST. Anonymous device identifiers are hashed; no names, emails, phone numbers or locations are collected.
         </p>
         <a href="/">Open the public app →</a>
       </section>

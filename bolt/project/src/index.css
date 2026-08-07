@@ -2822,6 +2822,32 @@ input { caret-color: #7C3AED; }
   background: rgba(0, 255, 136, 0.055);
 }
 
+.admin-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 26px 0 18px;
+}
+
+.admin-stats-grid .admin-live-card {
+  margin: 0;
+  padding: 18px;
+}
+
+.admin-peak-card {
+  border-color: rgba(96, 165, 250, 0.3);
+  background: rgba(59, 130, 246, 0.065);
+}
+
+.admin-peak-card .admin-live-icon {
+  background: rgba(59, 130, 246, 0.14);
+  color: #60A5FA;
+}
+
+.admin-peak-card strong {
+  color: #60A5FA;
+}
+
 .admin-live-icon {
   display: grid;
   place-items: center;
@@ -2848,6 +2874,56 @@ input { caret-color: #7C3AED; }
   line-height: 1;
 }
 
+.admin-device-control {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 18px 0;
+  padding: 14px 16px;
+  border: 1px solid rgba(72, 131, 159, 0.3);
+  border-radius: 13px;
+  background: rgba(8, 31, 49, 0.68);
+}
+
+.admin-device-control strong,
+.admin-device-control small {
+  display: block;
+}
+
+.admin-device-control strong {
+  color: #D5EAF3;
+  font-size: 12px;
+}
+
+.admin-device-control small {
+  margin-top: 3px;
+  color: #678395;
+  font-size: 10px;
+}
+
+.admin-device-control button {
+  flex: 0 0 auto;
+  padding: 8px 12px;
+  border: 1px solid rgba(103, 232, 249, 0.36);
+  border-radius: 9px;
+  background: transparent;
+  color: #A5F3FC;
+  font: 800 11px inherit;
+  cursor: pointer;
+}
+
+.admin-device-control button.is-excluded {
+  border-color: rgba(0, 255, 136, 0.35);
+  background: rgba(0, 255, 136, 0.09);
+  color: #00FF88;
+}
+
+.admin-error {
+  color: #FCA5A5;
+  font-size: 12px;
+}
+
 .admin-loading {
   color: #7894A5;
 }
@@ -2860,6 +2936,10 @@ input { caret-color: #7C3AED; }
 
   .admin-dashboard header {
     align-items: center;
+  }
+
+  .admin-stats-grid {
+    grid-template-columns: 1fr;
   }
 }
 

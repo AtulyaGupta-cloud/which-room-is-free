@@ -3,6 +3,7 @@ import HomePage from './pages/HomePage';
 import RoomDetailPage from './pages/RoomDetailPage';
 import AdminPage from './pages/AdminPage';
 import { supabase, Room } from './lib/supabase';
+import { getUsageDeviceId, isUsageExcluded } from './lib/usageTracking';
 
 function parsePath() {
   const path = window.location.pathname;
@@ -29,26 +30,20 @@ export default function App() {
   useEffect(() => {
     if (isAdminRoute) return;
 
-    let visitorKey: string;
-    try {
-      visitorKey = sessionStorage.getItem('wrif-presence-key') || crypto.randomUUID();
-      sessionStorage.setItem('wrif-presence-key', visitorKey);
-    } catch {
-      visitorKey = crypto.randomUUID();
-    }
+    const recordUsage = () => {
+      if (document.visibilityState === 'hidden' || isUsageExcluded()) return;
+      void supabase.functions.invoke('track-usage', {
+        body: { deviceId: getUsageDeviceId() },
+      });
+    };
 
-    const channel = supabase.channel('which-room-is-free-online', {
-      config: { presence: { key: visitorKey } },
-    });
-
-    channel.subscribe((status) => {
-      if (status === 'SUBSCRIBED') {
-        void channel.track({ online_at: new Date().toISOString() });
-      }
-    });
+    recordUsage();
+    const interval = window.setInterval(recordUsage, 60_000);
+    document.addEventListener('visibilitychange', recordUsage);
 
     return () => {
-      void supabase.removeChannel(channel);
+      window.clearInterval(interval);
+      document.removeEventListener('visibilitychange', recordUsage);
     };
   }, [isAdminRoute]);
 
