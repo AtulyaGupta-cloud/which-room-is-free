@@ -8,6 +8,11 @@ interface UsageStats {
   activityDate: string;
   uniqueVisitors: number;
   peakConcurrent: number;
+  history: Array<{
+    activityDate: string;
+    uniqueVisitors: number;
+    peakConcurrent: number;
+  }>;
 }
 
 export default function AdminPage() {
@@ -172,6 +177,40 @@ export default function AdminPage() {
             {deviceExcluded ? 'Excluded' : 'Exclude'}
           </button>
         </div>
+
+        <section className="admin-history">
+          <div className="admin-history-heading">
+            <div>
+              <p className="admin-kicker">Stored securely in Supabase</p>
+              <h2>Daily history</h2>
+            </div>
+            <span>Last 30 days</span>
+          </div>
+          {stats?.history?.length ? (
+            <div className="admin-history-table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Users</th>
+                    <th>Peak online</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {stats.history.map((day) => (
+                    <tr key={day.activityDate}>
+                      <td>{new Date(`${day.activityDate}T00:00:00+05:30`).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</td>
+                      <td>{day.uniqueVisitors}</td>
+                      <td>{day.peakConcurrent}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="admin-history-empty">Daily records will appear here after the first tracked visit.</p>
+          )}
+        </section>
 
         <p className="admin-privacy-note">
           Counts reset at midnight IST. Anonymous device identifiers are hashed; no names, emails, phone numbers or locations are collected.

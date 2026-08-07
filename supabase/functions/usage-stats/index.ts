@@ -44,22 +44,22 @@ Deno.serve(async (request) => {
     auth: { persistSession: false, autoRefreshToken: false },
   });
   const activityDate = istDate();
-  const [{ count, error: countError }, { data: metrics, error: metricsError }] = await Promise.all([
-    admin
-      .from('app_daily_visitors')
-      .select('*', { count: 'exact', head: true })
-      .eq('activity_date', activityDate),
-    admin
-      .from('app_daily_metrics')
-      .select('peak_concurrent')
-      .eq('activity_date', activityDate)
-      .maybeSingle(),
-  ]);
+  const { data: history, error: metricsError } = await admin
+    .from('app_daily_metrics')
+    .select('activity_date, unique_visitors, peak_concurrent')
+    .order('activity_date', { ascending: false })
+    .limit(30);
 
-  if (countError || metricsError) return json({ error: 'Unable to load usage statistics' }, 500);
+  if (metricsError) return json({ error: 'Unable to load usage statistics' }, 500);
+  const metrics = history?.find((day) => day.activity_date === activityDate);
   return json({
     activityDate,
-    uniqueVisitors: count ?? 0,
+    uniqueVisitors: metrics?.unique_visitors ?? 0,
     peakConcurrent: metrics?.peak_concurrent ?? 0,
+    history: (history ?? []).map((day) => ({
+      activityDate: day.activity_date,
+      uniqueVisitors: day.unique_visitors,
+      peakConcurrent: day.peak_concurrent,
+    })),
   });
 });
