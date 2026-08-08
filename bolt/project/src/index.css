@@ -86,18 +86,19 @@ input { caret-color: #7C3AED; }
   padding: 20px;
   overflow-y: auto;
   background:
-    radial-gradient(circle at 50% 18%, rgba(14, 165, 233, 0.22), transparent 36rem),
-    rgba(1, 8, 16, 0.97);
-  backdrop-filter: blur(18px);
+    radial-gradient(circle at 50% 18%, rgba(14, 165, 233, 0.12), transparent 34rem),
+    rgba(1, 8, 16, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 
 .install-onboarding {
-  width: min(100%, 570px);
-  padding: 30px;
+  width: min(100%, 540px);
+  padding: 27px;
   border: 1px solid rgba(103, 232, 249, 0.3);
   border-radius: 24px;
-  background: linear-gradient(145deg, rgba(7, 32, 49, 0.98), rgba(3, 16, 29, 0.98));
-  box-shadow: 0 30px 100px rgba(0, 0, 0, 0.65), 0 0 44px rgba(34, 211, 238, 0.08);
+  background: linear-gradient(145deg, rgba(7, 32, 49, 0.94), rgba(3, 16, 29, 0.95));
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.58), 0 0 44px rgba(34, 211, 238, 0.1);
   text-align: center;
 }
 
@@ -122,8 +123,8 @@ input { caret-color: #7C3AED; }
 .install-onboarding-reminder { margin:4px 0 0; color:#496979; font-size:9px; line-height:1.5; }
 
 @media (max-width: 600px) {
-  .install-onboarding-layer { align-items:start; padding:12px; }
-  .install-onboarding { margin:auto 0; padding:22px 17px; border-radius:20px; }
+  .install-onboarding-layer { place-items:center; padding:12px; background:rgba(1,8,16,.42); backdrop-filter:blur(3px); -webkit-backdrop-filter:blur(3px); }
+  .install-onboarding { margin:0; max-height:calc(100dvh - 24px); overflow-y:auto; padding:22px 17px; border-radius:20px; }
   .install-onboarding-visual { margin-bottom:13px; }
   .install-onboarding-intro { margin:12px auto 16px; font-size:12px; }
   .install-benefits { grid-template-columns:1fr; gap:7px; margin-bottom:15px; }
