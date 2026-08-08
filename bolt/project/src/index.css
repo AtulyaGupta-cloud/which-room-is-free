@@ -77,6 +77,61 @@ input { caret-color: #7C3AED; }
 
 .notification-help-banner button { display:flex; padding:2px; border:0; background:transparent; color:inherit; cursor:pointer; }
 
+.install-onboarding-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  overflow-y: auto;
+  background:
+    radial-gradient(circle at 50% 18%, rgba(14, 165, 233, 0.22), transparent 36rem),
+    rgba(1, 8, 16, 0.97);
+  backdrop-filter: blur(18px);
+}
+
+.install-onboarding {
+  width: min(100%, 570px);
+  padding: 30px;
+  border: 1px solid rgba(103, 232, 249, 0.3);
+  border-radius: 24px;
+  background: linear-gradient(145deg, rgba(7, 32, 49, 0.98), rgba(3, 16, 29, 0.98));
+  box-shadow: 0 30px 100px rgba(0, 0, 0, 0.65), 0 0 44px rgba(34, 211, 238, 0.08);
+  text-align: center;
+}
+
+.install-onboarding-visual { display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:18px; color:#67E8F9; font-size:10px; font-weight:800; letter-spacing:2px; }
+.install-onboarding-visual img { width:48px; height:48px; border-radius:12px; box-shadow:0 0 20px rgba(34,211,238,.22); }
+.install-onboarding-kicker { margin:0 0 8px; color:#67E8F9; font-size:11px; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; }
+.install-onboarding h2 { margin:0; color:#F8FDFF; font-size:clamp(27px, 5vw, 38px); line-height:1.08; letter-spacing:-.035em; }
+.install-onboarding-intro { max-width:470px; margin:15px auto 22px; color:#91AFBD; font-size:14px; line-height:1.65; }
+.install-benefits { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:20px; text-align:left; }
+.install-benefits div { padding:14px; border:1px solid rgba(103,232,249,.13); border-radius:13px; background:rgba(4,23,36,.68); }
+.install-benefits strong,.install-benefits span { display:block; }
+.install-benefits strong { margin-bottom:6px; color:#EAFBFF; font-size:12px; }
+.install-benefits span { color:#7292A1; font-size:10px; line-height:1.45; }
+.install-ios-quicksteps { display:flex; align-items:center; justify-content:center; gap:8px; margin:-4px 0 19px; color:#B8D5E1; font-size:10px; }
+.install-ios-quicksteps span { display:inline-flex; align-items:center; gap:4px; }
+.install-ios-quicksteps b { display:grid; place-items:center; width:19px; height:19px; border-radius:50%; background:#155E75; color:#CFFAFE; }
+.install-onboarding-primary,.install-onboarding-skip { width:100%; border:0; font-family:inherit; cursor:pointer; }
+.install-onboarding-primary { padding:15px 20px; border-radius:13px; background:linear-gradient(90deg,#2563EB,#7C3AED); color:#fff; font-size:14px; font-weight:800; box-shadow:0 12px 28px rgba(37,99,235,.24); }
+.install-onboarding-primary:hover { filter:brightness(1.1); }
+.install-onboarding-skip { margin-top:8px; padding:10px; background:transparent; color:#7895A3; font-size:12px; font-weight:700; }
+.install-onboarding-skip:hover { color:#CDEDF7; }
+.install-onboarding-reminder { margin:4px 0 0; color:#496979; font-size:9px; line-height:1.5; }
+
+@media (max-width: 600px) {
+  .install-onboarding-layer { align-items:start; padding:12px; }
+  .install-onboarding { margin:auto 0; padding:22px 17px; border-radius:20px; }
+  .install-onboarding-visual { margin-bottom:13px; }
+  .install-onboarding-intro { margin:12px auto 16px; font-size:12px; }
+  .install-benefits { grid-template-columns:1fr; gap:7px; margin-bottom:15px; }
+  .install-benefits div { padding:10px 12px; }
+  .install-benefits strong { margin:0 0 2px; }
+  .install-ios-quicksteps { flex-direction:column; align-items:flex-start; width:max-content; margin:0 auto 15px; }
+}
+
 /* Reversible experimental theme: removing .digital-theme restores the original UI. */
 .home-page.digital-theme {
   background-color: #06111F !important;

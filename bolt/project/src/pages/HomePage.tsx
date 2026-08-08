@@ -104,6 +104,7 @@ export default function HomePage({ onNavigate }: Props) {
   const [lastUpdated, setLastUpdated] = useState(0);
   const [installPrompt, setInstallPrompt] = useState<any>(null);
   const [iosInstallOpen, setIosInstallOpen] = useState(false);
+  const [installOnboardingOpen, setInstallOnboardingOpen] = useState(() => !isRunningStandalone());
   const [userLocation, setUserLocation] = useState<Coordinates | null>(null);
   const [locationAccuracy, setLocationAccuracy] = useState<number | null>(null);
   const [locationStatus, setLocationStatus] = useState<LocationStatus>('idle');
@@ -159,6 +160,7 @@ const handleEnableNotifications = async () => {
 
 const handleInstall = async () => {
   if (isIOSDevice()) {
+    setInstallOnboardingOpen(false);
     setIosInstallOpen(true);
     return;
   }
@@ -170,6 +172,7 @@ const handleInstall = async () => {
   const { outcome } = await installPrompt.userChoice;
   if (outcome === 'accepted') {
     setInstallPrompt(null);
+    setInstallOnboardingOpen(false);
   }
 };
 
@@ -328,6 +331,41 @@ const handleInstall = async () => {
 
   return (
     <div className="home-page digital-theme" style={{ minHeight: '100vh', background: '#0A0A0A', color: '#FFFFFF', fontFamily: 'Inter, -apple-system, sans-serif' }}>
+      {installOnboardingOpen && showInstallButton && (
+        <div className="install-onboarding-layer" role="presentation">
+          <section className="install-onboarding" role="dialog" aria-modal="true" aria-labelledby="install-onboarding-title">
+            <div className="install-onboarding-visual" aria-hidden="true">
+              <img src="/logo.png" alt="" />
+              <span>SAFE PWA INSTALL</span>
+            </div>
+            <p className="install-onboarding-kicker">The best way to use Which Room Is Free?</p>
+            <h2 id="install-onboarding-title">Install the app — recommended and safe</h2>
+            <p className="install-onboarding-intro">Keep room availability one tap away. It installs directly from your browser—no App Store download and no extra account.</p>
+
+            <div className="install-benefits">
+              <div><strong>⚡ Faster access</strong><span>Open it instantly from your Home Screen.</span></div>
+              <div><strong>🔔 Useful updates</strong><span>Choose to receive important timetable alerts.</span></div>
+              <div><strong>📱 App-like experience</strong><span>Runs cleanly in its own full-screen window.</span></div>
+            </div>
+
+            {isIOSDevice() && (
+              <div className="install-ios-quicksteps">
+                <span><b>1</b> Open in Safari</span>
+                <span><b>2</b> Tap Share <Share size={16} /></span>
+                <span><b>3</b> Add to Home Screen</span>
+              </div>
+            )}
+
+            <button type="button" className="install-onboarding-primary" onClick={() => void handleInstall()}>
+              ⬇ Install App (recommended and safe)
+            </button>
+            <button type="button" className="install-onboarding-skip" onClick={() => setInstallOnboardingOpen(false)}>
+              Continue in browser
+            </button>
+            <p className="install-onboarding-reminder">If you continue in the browser, this reminder will appear again the next time you open the website.</p>
+          </section>
+        </div>
+      )}
       {/* Sticky Header */}
       <header
         className="app-header"
