@@ -29,6 +29,54 @@ body {
 input::placeholder { color: #444; }
 input { caret-color: #7C3AED; }
 
+.header-status-cluster {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.notification-enable-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 7px 12px;
+  border: 1px solid rgba(103, 232, 249, 0.45);
+  border-radius: 999px;
+  background: rgba(8, 47, 73, 0.68);
+  color: #A5F3FC;
+  font: 700 11px/1 'Inter', sans-serif;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.notification-enable-button:hover { background: rgba(14, 116, 144, 0.42); }
+.notification-enable-button.is-enabled {
+  border-color: rgba(0, 255, 136, 0.38);
+  background: rgba(0, 255, 136, 0.1);
+  color: #00FF88;
+  cursor: default;
+}
+
+.notification-help-banner {
+  position: sticky;
+  top: 62px;
+  z-index: 90;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 9px 42px;
+  border-bottom: 1px solid rgba(251, 191, 36, 0.25);
+  background: rgba(40, 28, 5, 0.96);
+  color: #FDE68A;
+  font-size: 12px;
+  text-align: center;
+}
+
+.notification-help-banner button { display:flex; padding:2px; border:0; background:transparent; color:inherit; cursor:pointer; }
+
 /* Reversible experimental theme: removing .digital-theme restores the original UI. */
 .home-page.digital-theme {
   background-color: #06111F !important;
@@ -2996,6 +3044,45 @@ input { caret-color: #7C3AED; }
 .admin-history-empty {
   color: #678395;
   font-size: 11px;
+}
+
+.admin-notification-composer {
+  margin: 24px 0;
+  padding: 24px;
+  border: 1px solid rgba(103, 232, 249, 0.2);
+  border-radius: 18px;
+  background: rgba(6, 29, 44, 0.78);
+}
+
+.admin-notification-composer h2 { margin: 5px 0 7px; }
+.admin-notification-composer > div > p:last-child { margin:0 0 20px; color:#7895A3; font-size:13px; }
+.admin-notification-composer form { display:grid; gap:8px; }
+.admin-notification-composer label { color:#A8C7D5; font-size:12px; font-weight:700; }
+.admin-notification-composer input,
+.admin-notification-composer textarea {
+  width:100%;
+  margin-bottom:8px;
+  padding:12px 14px;
+  border:1px solid #214B60;
+  border-radius:10px;
+  outline:none;
+  background:#03121E;
+  color:#EAFBFF;
+  font:inherit;
+  resize:vertical;
+}
+.admin-notification-composer input:focus,
+.admin-notification-composer textarea:focus { border-color:#67E8F9; }
+.admin-composer-footer { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.admin-composer-footer span { color:#577687; font-size:11px; }
+.admin-composer-footer button { display:inline-flex; align-items:center; gap:7px; }
+.admin-composer-footer button:disabled { opacity:.45; cursor:not-allowed; }
+
+@media (max-width: 600px) {
+  .header-status-cluster { gap: 7px; }
+  .notification-enable-button { padding: 7px 9px; }
+  .notification-enable-button span { display:none; }
+  .notification-help-banner { top: 62px; padding: 8px 18px; font-size: 10px; }
 }
 
 .admin-loading {

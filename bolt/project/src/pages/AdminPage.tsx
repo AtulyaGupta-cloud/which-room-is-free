@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import type { Session } from '@supabase/supabase-js';
-import { LogOut, TrendingUp, Users } from 'lucide-react';
+import { BellRing, Download, LogOut, Send, TrendingUp, Users } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { getUsageDeviceId, isUsageExcluded, setUsageExcluded } from '../lib/usageTracking';
 
@@ -8,6 +8,8 @@ interface UsageStats {
   activityDate: string;
   uniqueVisitors: number;
   peakConcurrent: number;
+  installedDevices: number;
+  notificationSubscribers: number;
   history: Array<{
     activityDate: string;
     uniqueVisitors: number;
@@ -23,6 +25,10 @@ export default function AdminPage() {
   const [stats, setStats] = useState<UsageStats | null>(null);
   const [statsError, setStatsError] = useState('');
   const [deviceExcluded, setDeviceExcludedState] = useState(isUsageExcluded);
+  const [notificationTitle, setNotificationTitle] = useState('Which Room Is Free?');
+  const [notificationBody, setNotificationBody] = useState('');
+  const [sendingNotification, setSendingNotification] = useState(false);
+  const [notificationResult, setNotificationResult] = useState('');
 
   const isAdmin = session?.user.app_metadata?.role === 'admin';
 
@@ -83,6 +89,23 @@ export default function AdminPage() {
       options: { emailRedirectTo: `${window.location.origin}/admin` },
     });
     setMessage(error ? error.message : 'Check your email and open the sign-in link on this device.');
+  };
+
+  const sendNotification = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!window.confirm(`Send this notification to ${stats?.notificationSubscribers ?? 0} subscribed devices?`)) return;
+    setSendingNotification(true);
+    setNotificationResult('Sending…');
+    const { data, error } = await supabase.functions.invoke('send-notification', {
+      body: { title: notificationTitle.trim(), message: notificationBody.trim(), url: '/' },
+    });
+    if (error || !data?.ok) {
+      setNotificationResult('Could not send the notification. Please try again.');
+    } else {
+      setNotificationResult(`Sent to ${data.sent} device${data.sent === 1 ? '' : 's'}${data.failed ? ` · ${data.failed} failed` : ''}.`);
+      setNotificationBody('');
+    }
+    setSendingNotification(false);
   };
 
   if (!authReady) {
@@ -159,6 +182,22 @@ export default function AdminPage() {
               <small>Highest simultaneous usage</small>
             </div>
           </div>
+          <div className="admin-live-card admin-install-card">
+            <span className="admin-live-icon"><Download size={22} /></span>
+            <div>
+              <p>Installed devices</p>
+              <strong>{stats ? stats.installedDevices : '—'}</strong>
+              <small>Observed Home Screen/PWA launches</small>
+            </div>
+          </div>
+          <div className="admin-live-card admin-notification-card">
+            <span className="admin-live-icon"><BellRing size={22} /></span>
+            <div>
+              <p>Notifications enabled</p>
+              <strong>{stats ? stats.notificationSubscribers : '—'}</strong>
+              <small>Currently subscribed devices</small>
+            </div>
+          </div>
         </div>
 
         {statsError && <p className="admin-error">{statsError}</p>}
@@ -177,6 +216,25 @@ export default function AdminPage() {
             {deviceExcluded ? 'Excluded' : 'Exclude'}
           </button>
         </div>
+
+        <section className="admin-notification-composer">
+          <div>
+            <p className="admin-kicker">Push announcement</p>
+            <h2>Notify subscribed students</h2>
+            <p>It will appear like a normal phone notification. A confirmation is required before sending.</p>
+          </div>
+          <form onSubmit={sendNotification}>
+            <label htmlFor="notification-title">Title</label>
+            <input id="notification-title" value={notificationTitle} maxLength={80} required onChange={(event) => setNotificationTitle(event.target.value)} />
+            <label htmlFor="notification-body">Message</label>
+            <textarea id="notification-body" value={notificationBody} maxLength={240} required rows={4} placeholder="Example: The timetable has been updated with the latest AUGSD changes." onChange={(event) => setNotificationBody(event.target.value)} />
+            <div className="admin-composer-footer">
+              <span>{notificationBody.length}/240</span>
+              <button type="submit" disabled={sendingNotification || !notificationBody.trim()}><Send size={15} /> {sendingNotification ? 'Sending…' : 'Send notification'}</button>
+            </div>
+          </form>
+          {notificationResult && <p className="admin-message">{notificationResult}</p>}
+        </section>
 
         <section className="admin-history">
           <div className="admin-history-heading">
@@ -213,7 +271,7 @@ export default function AdminPage() {
         </section>
 
         <p className="admin-privacy-note">
-          Counts reset at midnight IST. Anonymous device identifiers are hashed; no names, emails, phone numbers or locations are collected.
+          Daily usage counts reset at midnight IST. Install and notification totals are cumulative. Anonymous device identifiers are hashed; no names, emails, phone numbers or locations are collected.
         </p>
         <a href="/">Open the public app →</a>
       </section>

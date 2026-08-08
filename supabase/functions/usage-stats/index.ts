@@ -52,10 +52,16 @@ Deno.serve(async (request) => {
 
   if (metricsError) return json({ error: 'Unable to load usage statistics' }, 500);
   const metrics = history?.find((day) => day.activity_date === activityDate);
+  const [{ count: installedDevices }, { count: notificationSubscribers }] = await Promise.all([
+    admin.from('app_installed_devices').select('*', { count: 'exact', head: true }),
+    admin.from('app_push_subscriptions').select('*', { count: 'exact', head: true }).eq('enabled', true),
+  ]);
   return json({
     activityDate,
     uniqueVisitors: metrics?.unique_visitors ?? 0,
     peakConcurrent: metrics?.peak_concurrent ?? 0,
+    installedDevices: installedDevices ?? 0,
+    notificationSubscribers: notificationSubscribers ?? 0,
     history: (history ?? []).map((day) => ({
       activityDate: day.activity_date,
       uniqueVisitors: day.unique_visitors,

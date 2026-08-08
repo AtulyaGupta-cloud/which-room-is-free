@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, type FormEvent } from 'react';
-import { Search, X, Menu, LocateFixed, MapPin, Heart, ChevronDown, Star, Share, ExternalLink } from 'lucide-react';
+import { Search, X, Menu, LocateFixed, MapPin, Heart, ChevronDown, Star, Share, ExternalLink, Bell, BellRing } from 'lucide-react';
 import { supabase, Room, RoomSchedule } from '../lib/supabase';
 import {
   Coordinates,
@@ -19,6 +19,7 @@ import {
   formatDuration,
 } from '../lib/timeUtils';
 import SkeletonCard from '../components/SkeletonCard';
+import { enablePushNotifications, getPushState, type PushState } from '../lib/pushNotifications';
 
 type FilterType =
   | 'ALL'
@@ -91,7 +92,6 @@ interface WalkingRoute {
 }
 
 export default function HomePage({ onNavigate }: Props) {
-  const [rooms, setRooms] = useState<Room[]>([]);
   const [statuses, setStatuses] = useState<RoomStatus[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<FilterType>('ALL');
@@ -102,7 +102,6 @@ export default function HomePage({ onNavigate }: Props) {
   const [savedRoomsOpen, setSavedRoomsOpen] = useState(false);
   const [liveTime, setLiveTime] = useState(getISTTime());
   const [lastUpdated, setLastUpdated] = useState(0);
-  const [todaySchedules, setTodaySchedules] = useState<RoomSchedule[]>([]);
   const [installPrompt, setInstallPrompt] = useState<any>(null);
   const [isInstallable, setIsInstallable] = useState(false);
   const [iosInstallOpen, setIosInstallOpen] = useState(false);
@@ -118,6 +117,9 @@ export default function HomePage({ onNavigate }: Props) {
   const [activeMap, setActiveMap] = useState<'nab' | 'institute'>('nab');
   const [feedbackRating, setFeedbackRating] = useState(0);
   const [feedbackText, setFeedbackText] = useState('');
+  const [pushState, setPushState] = useState<PushState>('ready');
+  const [pushBusy, setPushBusy] = useState(false);
+  const [pushMessage, setPushMessage] = useState('');
 
 useEffect(() => {
   const handler = (e: any) => {
@@ -128,6 +130,34 @@ useEffect(() => {
   window.addEventListener('beforeinstallprompt', handler);
   return () => window.removeEventListener('beforeinstallprompt', handler);
 }, []);
+
+useEffect(() => {
+  void getPushState().then(setPushState).catch(() => setPushState('unsupported'));
+}, []);
+
+const handleEnableNotifications = async () => {
+  if (pushState === 'enabled') return;
+  if (pushState === 'blocked') {
+    setPushMessage('Notifications are blocked. Allow them in your browser or phone settings.');
+    return;
+  }
+  if (pushState === 'unsupported') {
+    setPushMessage('Notifications are not supported in this browser.');
+    return;
+  }
+  setPushBusy(true);
+  setPushMessage('');
+  try {
+    await enablePushNotifications();
+    setPushState('enabled');
+    setPushMessage('Notifications enabled!');
+  } catch (error) {
+    setPushState(await getPushState());
+    setPushMessage(error instanceof Error ? error.message : 'Could not enable notifications.');
+  } finally {
+    setPushBusy(false);
+  }
+};
 
 const handleInstall = async () => {
   if (isIOSDevice()) {
@@ -242,8 +272,6 @@ const handleInstall = async () => {
     ]);
     if (allRooms) {
       const sched = (schedules || []) as RoomSchedule[];
-      setRooms(allRooms as Room[]);
-      setTodaySchedules(sched);
       setStatuses(
         (allRooms as Room[]).map((r) => computeRoomStatusAtTime(r, sched, selectedTime))
       );
@@ -372,7 +400,19 @@ const handleInstall = async () => {
       ⬇ Install App
     </button>
   )}
-</div>          <div className="live-clock" style={{ textAlign: 'right' }}>
+</div>
+          <div className="header-status-cluster">
+            <button
+              type="button"
+              className={`notification-enable-button ${pushState === 'enabled' ? 'is-enabled' : ''}`}
+              onClick={() => void handleEnableNotifications()}
+              disabled={pushBusy || pushState === 'enabled'}
+              title={pushMessage || (pushState === 'enabled' ? 'Notifications are enabled' : 'Enable update notifications')}
+            >
+              {pushState === 'enabled' ? <BellRing size={14} /> : <Bell size={14} />}
+              <span>{pushBusy ? 'Enabling…' : pushState === 'enabled' ? 'Alerts on' : 'Enable alerts'}</span>
+            </button>
+            <div className="live-clock" style={{ textAlign: 'right' }}>
             <div
               style={{
                 fontSize: 14,
@@ -390,8 +430,16 @@ const handleInstall = async () => {
               {hourSlot ? hourSlot.label : 'Outside class hours'}
             </div>
           </div>
+          </div>
         </div>
       </header>
+
+      {pushMessage && pushState !== 'enabled' && (
+        <div className="notification-help-banner" role="status">
+          {pushMessage}
+          <button type="button" onClick={() => setPushMessage('')} aria-label="Dismiss notification message"><X size={13} /></button>
+        </div>
+      )}
 
       <main className="home-main" style={{ maxWidth: 1200, margin: '0 auto', padding: '50px 20px 120px' }}>
         <div

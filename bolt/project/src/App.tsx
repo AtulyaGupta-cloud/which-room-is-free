@@ -4,6 +4,7 @@ import RoomDetailPage from './pages/RoomDetailPage';
 import AdminPage from './pages/AdminPage';
 import { supabase, Room } from './lib/supabase';
 import { getUsageDeviceId, isUsageExcluded } from './lib/usageTracking';
+import { reportInstalledApp } from './lib/pushNotifications';
 
 function parsePath() {
   const path = window.location.pathname;
@@ -30,6 +31,10 @@ export default function App() {
   useEffect(() => {
     if (isAdminRoute) return;
 
+    void reportInstalledApp();
+    const recordInstall = () => window.setTimeout(() => void reportInstalledApp(), 1000);
+    window.addEventListener('appinstalled', recordInstall);
+
     const recordUsage = () => {
       if (document.visibilityState === 'hidden' || isUsageExcluded()) return;
       void supabase.functions.invoke('track-usage', {
@@ -44,6 +49,7 @@ export default function App() {
     return () => {
       window.clearInterval(interval);
       document.removeEventListener('visibilitychange', recordUsage);
+      window.removeEventListener('appinstalled', recordInstall);
     };
   }, [isAdminRoute]);
 
