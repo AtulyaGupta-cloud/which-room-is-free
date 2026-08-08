@@ -103,7 +103,6 @@ export default function HomePage({ onNavigate }: Props) {
   const [liveTime, setLiveTime] = useState(getISTTime());
   const [lastUpdated, setLastUpdated] = useState(0);
   const [installPrompt, setInstallPrompt] = useState<any>(null);
-  const [isInstallable, setIsInstallable] = useState(false);
   const [iosInstallOpen, setIosInstallOpen] = useState(false);
   const [userLocation, setUserLocation] = useState<Coordinates | null>(null);
   const [locationAccuracy, setLocationAccuracy] = useState<number | null>(null);
@@ -125,7 +124,6 @@ useEffect(() => {
   const handler = (e: any) => {
     e.preventDefault();
     setInstallPrompt(e);
-    setIsInstallable(true);
   };
   window.addEventListener('beforeinstallprompt', handler);
   return () => window.removeEventListener('beforeinstallprompt', handler);
@@ -164,16 +162,18 @@ const handleInstall = async () => {
     setIosInstallOpen(true);
     return;
   }
-  if (!installPrompt) return;
+  if (!installPrompt) {
+    window.alert('To install safely, open your browser menu and choose “Install app” or “Add to Home screen”.');
+    return;
+  }
   installPrompt.prompt();
   const { outcome } = await installPrompt.userChoice;
   if (outcome === 'accepted') {
     setInstallPrompt(null);
-    setIsInstallable(false);
   }
 };
 
-  const showInstallButton = !isRunningStandalone() && (isInstallable || isIOSDevice());
+  const showInstallButton = !isRunningStandalone();
 
   const fetchWalkingRoutes = async (location: Coordinates) => {
     const { data, error } = await supabase.functions.invoke('walking-distances', {
@@ -397,7 +397,7 @@ const handleInstall = async () => {
         (e.currentTarget as HTMLButtonElement).style.color = '#7C3AED';
       }}
     >
-      ⬇ Install App
+      ⬇ Install App (recommended and safe)
     </button>
   )}
 </div>
