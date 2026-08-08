@@ -36,6 +36,23 @@ input { caret-color: #7C3AED; }
   gap: 12px;
 }
 
+.header-install-button small {
+  font-size: 8px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  opacity: 0.72;
+}
+
+@media (max-width: 700px) {
+  .header-install-button {
+    flex-direction: column;
+    gap: 1px !important;
+    padding: 5px 9px !important;
+    line-height: 1 !important;
+  }
+  .header-install-button small { font-size: 6px; }
+}
+
 .notification-enable-button {
   display: inline-flex;
   align-items: center;

@@ -409,6 +409,7 @@ const handleInstall = async () => {
 
   {showInstallButton && (
     <button
+      className="header-install-button"
       onClick={handleInstall}
       style={{
         display: 'flex',
@@ -435,7 +436,8 @@ const handleInstall = async () => {
         (e.currentTarget as HTMLButtonElement).style.color = '#7C3AED';
       }}
     >
-      ⬇ Install App (recommended and safe)
+      <span>⬇ Install App</span>
+      <small>(recommended and safe)</small>
     </button>
   )}
 </div>
