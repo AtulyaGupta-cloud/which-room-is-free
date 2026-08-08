@@ -437,7 +437,7 @@ const handleInstall = async () => {
 
           {showClockTower && (
             <p className="timetable-update-note">
-              Updated with the latest AUGSD timetable · Uploaded 4 August 2026
+              Updated with the latest AUGSD timetable · Uploaded 8 August 2026
             </p>
           )}
 
