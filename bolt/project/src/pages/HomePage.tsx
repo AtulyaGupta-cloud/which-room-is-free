@@ -158,21 +158,30 @@ const handleEnableNotifications = async () => {
   }
 };
 
-const handleInstall = async () => {
+const handleInstall = async (): Promise<boolean> => {
   if (isIOSDevice()) {
     setInstallOnboardingOpen(false);
     setIosInstallOpen(true);
-    return;
+    return false;
   }
   if (!installPrompt) {
     window.alert('To install safely, open your browser menu and choose “Install app” or “Add to Home screen”.');
-    return;
+    return false;
   }
   installPrompt.prompt();
   const { outcome } = await installPrompt.userChoice;
   if (outcome === 'accepted') {
     setInstallPrompt(null);
     setInstallOnboardingOpen(false);
+    return true;
+  }
+  return false;
+};
+
+const handleInstallWithNotifications = async () => {
+  const installed = await handleInstall();
+  if (installed && pushState !== 'enabled') {
+    await handleEnableNotifications();
   }
 };
 
@@ -356,8 +365,8 @@ const handleInstall = async () => {
               </div>
             )}
 
-            <button type="button" className="install-onboarding-primary" onClick={() => void handleInstall()}>
-              ⬇ Install App (recommended and safe)
+            <button type="button" className="install-onboarding-primary" onClick={() => void handleInstallWithNotifications()}>
+              ⬇ Install App + Enable Notifications
             </button>
             <button type="button" className="install-onboarding-skip" onClick={() => setInstallOnboardingOpen(false)}>
               Continue in browser
@@ -410,7 +419,7 @@ const handleInstall = async () => {
   {showInstallButton && (
     <button
       className="header-install-button"
-      onClick={handleInstall}
+      onClick={() => void handleInstallWithNotifications()}
       style={{
         display: 'flex',
         alignItems: 'center',
@@ -450,7 +459,7 @@ const handleInstall = async () => {
               title={pushMessage || (pushState === 'enabled' ? 'Notifications are enabled' : 'Enable update notifications')}
             >
               {pushState === 'enabled' ? <BellRing size={14} /> : <Bell size={14} />}
-              <span>{pushBusy ? 'Enabling…' : pushState === 'enabled' ? 'Alerts on' : 'Enable alerts'}</span>
+              <span>{pushBusy ? 'Enabling…' : pushState === 'enabled' ? 'Notifications on' : 'Notifications'}</span>
             </button>
             <div className="live-clock" style={{ textAlign: 'right' }}>
             <div
@@ -937,12 +946,13 @@ const handleInstall = async () => {
 
             <div className="ios-install-icon" aria-hidden="true">📲</div>
             <h2 id="ios-install-title">Install on iPhone or iPad</h2>
-            <p className="feedback-intro">Add Which Room Is Free to your Home Screen in three quick steps.</p>
+            <p className="feedback-intro">Add Which Room Is Free to your Home Screen, then enable notifications from the installed app.</p>
 
             <ol className="ios-install-steps">
               <li><span>1</span><p>Open this page in <strong>Safari</strong>.</p></li>
               <li><span>2</span><p>Tap the <strong>Share</strong> button <Share size={17} aria-hidden="true" /> in Safari&apos;s toolbar.</p></li>
               <li><span>3</span><p>Choose <strong>Add to Home Screen</strong>, then tap <strong>Add</strong>.</p></li>
+              <li><span>4</span><p>Open the installed app and tap <strong>Notifications</strong> beside the live clock.</p></li>
             </ol>
 
             <button type="button" className="feedback-submit" onClick={() => setIosInstallOpen(false)}>
