@@ -80,30 +80,63 @@ function loadImage(file: File): Promise<HTMLImageElement> {
   });
 }
 
-function cropDayColumn(image: HTMLImageElement, dayIndex: number, dayCount: 5 | 6) {
-  // ERP timetable screenshots use one time column followed by either five or six
-  // equal day columns. Saturday is omitted when the ERP export has no Saturday.
-  // Cropping the original pixels (never the displayed/mobile-scaled preview) makes
-  // extraction identical across phones and laptops.
-  const timeColumnRatio = 1.28;
-  const leftRail = timeColumnRatio / (dayCount + timeColumnRatio);
-  const usableWidth = 0.994 - leftRail;
-  const header = 0.035;
-  const columnWidth = usableWidth / dayCount;
-  const sourceX = Math.round(image.naturalWidth * (leftRail + dayIndex * columnWidth));
-  const sourceY = Math.round(image.naturalHeight * header);
-  const sourceWidth = Math.round(image.naturalWidth * columnWidth);
-  const sourceHeight = Math.round(image.naturalHeight * 0.955);
-  const scale = Math.max(1, Math.min(2, 1100 / sourceWidth));
+function prepareImage(image: HTMLImageElement) {
+  // Always process the original pixels. A bounded working size prevents mobile
+  // browsers from running out of memory without making assumptions about layout.
+  const scale = Math.min(2, 2200 / image.naturalWidth);
   const canvas = document.createElement('canvas');
-  canvas.width = Math.round(sourceWidth * scale);
-  canvas.height = Math.round(sourceHeight * scale);
+  canvas.width = Math.round(image.naturalWidth * scale);
+  canvas.height = Math.round(image.naturalHeight * scale);
   const context = canvas.getContext('2d', { willReadFrequently: true });
   if (!context) throw new Error('Image processing is unavailable in this browser.');
   context.fillStyle = '#fff';
   context.fillRect(0, 0, canvas.width, canvas.height);
-  context.drawImage(image, sourceX, sourceY, sourceWidth, sourceHeight, 0, 0, canvas.width, canvas.height);
+  context.drawImage(image, 0, 0, canvas.width, canvas.height);
   return canvas;
+}
+
+interface PositionedWord {
+  text: string;
+  x0: number;
+  y0: number;
+  x1: number;
+  y1: number;
+}
+
+function classesFromPositionedWords(words: PositionedWord[], imageWidth: number) {
+  const dayLookup = new Map(TIMETABLE_DAYS.map((day) => [day.toUpperCase(), day]));
+  const headings = words
+    .map((word) => ({ ...word, normalized: word.text.toUpperCase().replace(/[^A-Z]/g, '') }))
+    .filter((word) => dayLookup.has(word.normalized))
+    .map((word) => ({ ...word, day: dayLookup.get(word.normalized)! }))
+    .sort((a, b) => a.x0 - b.x0)
+    .filter((heading, index, all) => all.findIndex((candidate) => candidate.day === heading.day) === index);
+
+  if (headings.length < 2) {
+    throw new Error('Day headings could not be read. Upload the uncropped ERP timetable image with Monday–Friday headings visible.');
+  }
+
+  const classes: PersonalClass[] = [];
+  headings.forEach((heading, index) => {
+    const center = (heading.x0 + heading.x1) / 2;
+    const previousCenter = index ? (headings[index - 1].x0 + headings[index - 1].x1) / 2 : 0;
+    const nextCenter = index < headings.length - 1
+      ? (headings[index + 1].x0 + headings[index + 1].x1) / 2
+      : imageWidth;
+    const left = index ? (previousCenter + center) / 2 : Math.max(0, center - (nextCenter - center) / 2);
+    const right = index < headings.length - 1 ? (center + nextCenter) / 2 : Math.min(imageWidth, center + (center - previousCenter) / 2);
+    const columnText = words
+      .filter((word) => {
+        const wordCenter = (word.x0 + word.x1) / 2;
+        return word.y0 > heading.y1 && wordCenter >= left && wordCenter < right;
+      })
+      .sort((a, b) => Math.abs(a.y0 - b.y0) < 8 ? a.x0 - b.x0 : a.y0 - b.y0)
+      .map((word) => word.text)
+      .join(' ');
+    classes.push(...parseDayText(columnText, heading.day));
+  });
+
+  return classes;
 }
 
 export async function extractPersonalTimetable(file: File, onProgress: (value: number, label: string) => void) {
@@ -113,32 +146,31 @@ export async function extractPersonalTimetable(file: File, onProgress: (value: n
     throw new Error('Please upload the original full timetable screenshot, not a cropped or compressed copy.');
   }
 
-  // A five-day ERP export is visibly narrower than the six-day version. The
-  // threshold leaves room for small screenshot crops and different phone DPIs.
-  const aspectRatio = image.naturalWidth / image.naturalHeight;
-  const dayCount: 5 | 6 = aspectRatio < 0.79 ? 5 : 6;
-  const daysToRead = TIMETABLE_DAYS.slice(0, dayCount);
-
   const worker = await createWorker('eng', 1, {
     logger: (message) => {
       if (message.status === 'recognizing text') {
-        onProgress(Math.min(98, Math.round(message.progress * 15)), 'Reading timetable…');
+        onProgress(Math.min(98, Math.round(message.progress * 100)), 'Discovering days, courses, times and rooms…');
       }
     },
   });
 
   try {
     await worker.setParameters({
-      tessedit_pageseg_mode: PSM.SINGLE_BLOCK,
+      tessedit_pageseg_mode: PSM.SPARSE_TEXT,
       preserve_interword_spaces: '1',
     });
-    const classes: PersonalClass[] = [];
-    for (let index = 0; index < daysToRead.length; index += 1) {
-      const day = daysToRead[index];
-      onProgress(Math.round((index / dayCount) * 100), `Reading ${day}…`);
-      const result = await worker.recognize(cropDayColumn(image, index, dayCount));
-      classes.push(...parseDayText(result.data.text, day));
-    }
+    const canvas = prepareImage(image);
+    const result = await worker.recognize(canvas, {}, { blocks: true });
+    const words: PositionedWord[] = (result.data.blocks ?? []).flatMap((block) =>
+      block.paragraphs.flatMap((paragraph) => paragraph.lines.flatMap((line) => line.words.map((word) => ({
+        text: word.text,
+        x0: word.bbox.x0,
+        y0: word.bbox.y0,
+        x1: word.bbox.x1,
+        y1: word.bbox.y1,
+      }))))
+    );
+    const classes = classesFromPositionedWords(words, canvas.width);
     onProgress(100, 'Timetable ready for review');
     return classes.sort((a, b) => TIMETABLE_DAYS.indexOf(a.day) - TIMETABLE_DAYS.indexOf(b.day) || a.startTime.localeCompare(b.startTime));
   } finally {

@@ -85,7 +85,7 @@ export default function PersonalTimetable({ classes, onChange }: Props) {
         {mode === 'import' && <>
           <p className="personal-timetable-kicker">Stored only on this device</p>
           <h2 id="personal-timetable-title">Import My Timetable</h2>
-          <p className="personal-timetable-copy">Upload the original full weekly timetable screenshot from ERP. Five-day and six-day timetables are both supported, including exports without Saturday.</p>
+          <p className="personal-timetable-copy">Upload your ERP timetable image. The app discovers the visible day columns and class positions automatically—Saturday is not required.</p>
           <button className="personal-timetable-upload" type="button" disabled={busy} onClick={() => inputRef.current?.click()}>
             {busy ? <><span className="personal-timetable-spinner" /><strong>{progressLabel || 'Preparing image…'}</strong><span>{progress}%</span></> : <><Camera /><strong>Choose timetable screenshot</strong><span>PNG, JPG or WebP · full weekly view</span></>}
           </button>
