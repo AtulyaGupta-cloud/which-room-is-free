@@ -45,7 +45,7 @@ export default function PersonalTimetable({ classes, onChange }: Props) {
         setProgressLabel(label);
       });
       if (!extracted.length) {
-        throw new Error('No complete classes were found. Use the original full ERP weekly timetable screenshot with all six day columns visible.');
+        throw new Error('No complete classes were found. Upload the original full ERP weekly timetable screenshot with the day headings, time labels and class tiles visible.');
       }
       setDraft(extracted);
       setMode('review');
@@ -85,7 +85,7 @@ export default function PersonalTimetable({ classes, onChange }: Props) {
         {mode === 'import' && <>
           <p className="personal-timetable-kicker">Stored only on this device</p>
           <h2 id="personal-timetable-title">Import My Timetable</h2>
-          <p className="personal-timetable-copy">Upload the original full weekly timetable screenshot from ERP. The app reads all six days from the original image pixels—never the smaller phone preview.</p>
+          <p className="personal-timetable-copy">Upload the original full weekly timetable screenshot from ERP. Five-day and six-day timetables are both supported, including exports without Saturday.</p>
           <button className="personal-timetable-upload" type="button" disabled={busy} onClick={() => inputRef.current?.click()}>
             {busy ? <><span className="personal-timetable-spinner" /><strong>{progressLabel || 'Preparing image…'}</strong><span>{progress}%</span></> : <><Camera /><strong>Choose timetable screenshot</strong><span>PNG, JPG or WebP · full weekly view</span></>}
           </button>

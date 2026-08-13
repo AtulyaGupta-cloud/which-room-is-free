@@ -80,14 +80,16 @@ function loadImage(file: File): Promise<HTMLImageElement> {
   });
 }
 
-function cropDayColumn(image: HTMLImageElement, dayIndex: number) {
-  // ERP timetable screenshots use one time column followed by six equal day columns.
+function cropDayColumn(image: HTMLImageElement, dayIndex: number, dayCount: 5 | 6) {
+  // ERP timetable screenshots use one time column followed by either five or six
+  // equal day columns. Saturday is omitted when the ERP export has no Saturday.
   // Cropping the original pixels (never the displayed/mobile-scaled preview) makes
   // extraction identical across phones and laptops.
-  const leftRail = 0.168;
-  const usableWidth = 0.828;
+  const timeColumnRatio = 1.28;
+  const leftRail = timeColumnRatio / (dayCount + timeColumnRatio);
+  const usableWidth = 0.994 - leftRail;
   const header = 0.035;
-  const columnWidth = usableWidth / 6;
+  const columnWidth = usableWidth / dayCount;
   const sourceX = Math.round(image.naturalWidth * (leftRail + dayIndex * columnWidth));
   const sourceY = Math.round(image.naturalHeight * header);
   const sourceWidth = Math.round(image.naturalWidth * columnWidth);
@@ -111,6 +113,12 @@ export async function extractPersonalTimetable(file: File, onProgress: (value: n
     throw new Error('Please upload the original full timetable screenshot, not a cropped or compressed copy.');
   }
 
+  // A five-day ERP export is visibly narrower than the six-day version. The
+  // threshold leaves room for small screenshot crops and different phone DPIs.
+  const aspectRatio = image.naturalWidth / image.naturalHeight;
+  const dayCount: 5 | 6 = aspectRatio < 0.79 ? 5 : 6;
+  const daysToRead = TIMETABLE_DAYS.slice(0, dayCount);
+
   const worker = await createWorker('eng', 1, {
     logger: (message) => {
       if (message.status === 'recognizing text') {
@@ -125,10 +133,10 @@ export async function extractPersonalTimetable(file: File, onProgress: (value: n
       preserve_interword_spaces: '1',
     });
     const classes: PersonalClass[] = [];
-    for (let index = 0; index < TIMETABLE_DAYS.length; index += 1) {
-      const day = TIMETABLE_DAYS[index];
-      onProgress(Math.round((index / 6) * 100), `Reading ${day}…`);
-      const result = await worker.recognize(cropDayColumn(image, index));
+    for (let index = 0; index < daysToRead.length; index += 1) {
+      const day = daysToRead[index];
+      onProgress(Math.round((index / dayCount) * 100), `Reading ${day}…`);
+      const result = await worker.recognize(cropDayColumn(image, index, dayCount));
       classes.push(...parseDayText(result.data.text, day));
     }
     onProgress(100, 'Timetable ready for review');
