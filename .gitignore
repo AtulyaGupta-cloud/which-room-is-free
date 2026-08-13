@@ -1,0 +1,7 @@
+.vercel
+.env*
+bolt/project/dist/
+bolt/project/node_modules/
+bolt/project/eng.traineddata
+supabase/.temp/
+supabase/supabase/
