@@ -19,6 +19,8 @@ import {
   formatDuration,
 } from '../lib/timeUtils';
 import SkeletonCard from '../components/SkeletonCard';
+import PersonalTimetable from '../components/PersonalTimetable';
+import { loadPersonalTimetable, type PersonalClass } from '../lib/personalTimetable';
 import { enablePushNotifications, getPushState, type PushState } from '../lib/pushNotifications';
 
 type FilterType =
@@ -59,6 +61,15 @@ function isRunningStandalone() {
     || Boolean((navigator as Navigator & { standalone?: boolean }).standalone);
 }
 
+function isLocalPreview() {
+  const host = window.location.hostname;
+  return host === 'localhost'
+    || host === '127.0.0.1'
+    || /^10\./.test(host)
+    || /^192\.168\./.test(host)
+    || /^172\.(1[6-9]|2\d|3[01])\./.test(host);
+}
+
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const FAVORITES_KEY = 'which-room-is-free:favorites';
 
@@ -91,6 +102,11 @@ interface WalkingRoute {
   durationSeconds: number;
 }
 
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
+}
+
 export default function HomePage({ onNavigate }: Props) {
   const [statuses, setStatuses] = useState<RoomStatus[]>([]);
   const [loading, setLoading] = useState(true);
@@ -102,9 +118,9 @@ export default function HomePage({ onNavigate }: Props) {
   const [savedRoomsOpen, setSavedRoomsOpen] = useState(false);
   const [liveTime, setLiveTime] = useState(getISTTime());
   const [lastUpdated, setLastUpdated] = useState(0);
-  const [installPrompt, setInstallPrompt] = useState<any>(null);
+  const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [iosInstallOpen, setIosInstallOpen] = useState(false);
-  const [installOnboardingOpen, setInstallOnboardingOpen] = useState(() => !isRunningStandalone());
+  const [installOnboardingOpen, setInstallOnboardingOpen] = useState(() => !isRunningStandalone() && !isLocalPreview());
   const [userLocation, setUserLocation] = useState<Coordinates | null>(null);
   const [locationAccuracy, setLocationAccuracy] = useState<number | null>(null);
   const [locationStatus, setLocationStatus] = useState<LocationStatus>('idle');
@@ -120,9 +136,11 @@ export default function HomePage({ onNavigate }: Props) {
   const [pushState, setPushState] = useState<PushState>('ready');
   const [pushBusy, setPushBusy] = useState(false);
   const [pushMessage, setPushMessage] = useState('');
+  const [personalClasses, setPersonalClasses] = useState<PersonalClass[]>(loadPersonalTimetable);
 
 useEffect(() => {
-  const handler = (e: any) => {
+  const handler = (event: Event) => {
+    const e = event as BeforeInstallPromptEvent;
     e.preventDefault();
     setInstallPrompt(e);
   };
@@ -539,6 +557,8 @@ const handleInstallWithNotifications = async () => {
           )}
 
         </div>
+
+        <PersonalTimetable classes={personalClasses} onChange={setPersonalClasses} />
 
         {/* Sunday Banner */}
         {isSunday && (
