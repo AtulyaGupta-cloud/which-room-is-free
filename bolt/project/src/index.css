@@ -3296,13 +3296,17 @@ input { caret-color: #7C3AED; }
 .my-classes-import small,.my-classes-header small { color:#7494a3; font-size:11px; }
 .my-classes-import > svg { width:17px; transform:rotate(-90deg); color:#67e8f9; }
 .my-classes-home.has-data { padding:16px; background:linear-gradient(145deg,rgba(5,35,50,.94),rgba(4,23,36,.96)); border:1px solid rgba(0,255,136,.3); border-radius:18px; }
-.my-classes-header,.my-classes-header > div { display:flex; align-items:center; gap:10px; }
-.my-classes-header { justify-content:space-between; margin-bottom:12px; }
-.my-classes-header > div > svg { color:#00ff88; }
+.my-classes-header { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.my-classes-toggle { min-width:0; flex:1; display:flex; align-items:center; gap:10px; padding:0; color:inherit; text-align:left; background:transparent; border:0; cursor:pointer; font:inherit; }
+.my-classes-toggle > svg:first-child { flex:none; color:#00ff88; }
+.my-classes-toggle > svg:last-child { width:18px; flex:none; color:#67e8f9; transition:transform .2s ease; }
+.my-classes-toggle > svg:last-child.is-open { transform:rotate(180deg); }
 .my-classes-header span { display:grid; gap:2px; }
 .my-classes-header strong { font-size:17px; }
-.my-classes-header button { display:flex; align-items:center; gap:5px; padding:7px 10px; color:#8eabb8; background:transparent; border:1px solid #244657; border-radius:9px; cursor:pointer; }
-.my-classes-header button svg { width:13px; }
+.my-classes-replace { flex:none; display:flex; align-items:center; gap:5px; padding:7px 10px; color:#8eabb8; background:transparent; border:1px solid #244657; border-radius:9px; cursor:pointer; }
+.my-classes-replace svg { width:13px; }
+.my-classes-expanded { margin-top:12px; animation:my-classes-reveal .2s ease both; }
+@keyframes my-classes-reveal { from { opacity:0; transform:translateY(-5px); } to { opacity:1; transform:none; } }
 .my-classes-day { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:11px; color:#7896a5; font-size:11px; font-weight:700; }
 .my-classes-day select { min-width:145px; padding:8px 10px; color:#e9fbff; background:#061725; border:1px solid #245065; border-radius:8px; font:inherit; }
 .my-classes-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }

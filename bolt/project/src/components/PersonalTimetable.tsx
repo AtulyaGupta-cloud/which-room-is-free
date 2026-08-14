@@ -16,6 +16,7 @@ export default function PersonalTimetable({ classes, onChange, onOpenRoom }: Pro
   const [draft, setDraft] = useState<PersonalClass[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [expanded, setExpanded] = useState(false);
   const availableDays = useMemo(() => WEEK.filter((day) => classes.some((item) => item.day.toLowerCase() === day.toLowerCase())), [classes]);
   const today = new Intl.DateTimeFormat('en-US', { weekday: 'long', timeZone: 'Asia/Kolkata' }).format(new Date());
   const [selectedDay, setSelectedDay] = useState(today);
@@ -45,6 +46,7 @@ export default function PersonalTimetable({ classes, onChange, onOpenRoom }: Pro
     savePersonalTimetable(verified);
     onChange(verified);
     setSelectedDay(verified.some((item) => item.day === today) ? today : verified[0]?.day ?? today);
+    setExpanded(true);
     setModal('closed');
   };
 
@@ -52,13 +54,20 @@ export default function PersonalTimetable({ classes, onChange, onOpenRoom }: Pro
     {classes.length === 0 ? <button className="my-classes-import" type="button" onClick={() => { setError(''); setModal('upload'); }}>
       <span><Upload /></span><div><strong>Import My Timetable</strong><small>Upload any timetable image to find your classes and rooms</small></div><ChevronDown />
     </button> : <>
-      <header className="my-classes-header"><div><CalendarDays /><span><strong>My Classes</strong><small>{classes.length} verified classes saved privately on this device</small></span></div><button type="button" onClick={() => { setError(''); setModal('upload'); }}><Pencil /> Replace</button></header>
-      <label className="my-classes-day">View classes for<select value={activeDay} onChange={(event) => setSelectedDay(event.target.value)}>{availableDays.map((day) => <option key={day}>{day}</option>)}</select></label>
-      <div className="my-classes-list">{visibleClasses.map((item) => <article key={item.id}>
-        <time>{item.startTime}<small>to {item.endTime}</small></time>
-        <div><strong>{item.courseCode}{item.section ? ` · ${item.section}` : ''}</strong><span>{item.courseName || item.classType}</span></div>
-        <button type="button" onClick={() => onOpenRoom(item.room)}><small>ROOM</small>{item.room}</button>
-      </article>)}</div>
+      <header className="my-classes-header">
+        <button className="my-classes-toggle" type="button" aria-expanded={expanded} onClick={() => setExpanded((open) => !open)}>
+          <CalendarDays /><span><strong>My Classes</strong><small>{classes.length} verified classes saved privately on this device</small></span><ChevronDown className={expanded ? 'is-open' : ''} />
+        </button>
+        <button className="my-classes-replace" type="button" onClick={() => { setError(''); setModal('upload'); }}><Pencil /> Replace</button>
+      </header>
+      {expanded && <div className="my-classes-expanded">
+        <label className="my-classes-day">View classes for<select value={activeDay} onChange={(event) => setSelectedDay(event.target.value)}>{availableDays.map((day) => <option key={day}>{day}</option>)}</select></label>
+        <div className="my-classes-list">{visibleClasses.map((item) => <article key={item.id}>
+          <time>{item.startTime}<small>to {item.endTime}</small></time>
+          <div><strong>{item.courseCode}{item.section ? ` · ${item.section}` : ''}</strong><span>{item.courseName || item.classType}</span></div>
+          <button type="button" onClick={() => onOpenRoom(item.room)}><small>ROOM</small>{item.room}</button>
+        </article>)}</div>
+      </div>}
     </>}
 
     {modal !== 'closed' && <div className="timetable-modal-layer"><button className="timetable-modal-backdrop" aria-label="Close" onClick={() => !busy && setModal('closed')} /><section className="timetable-modal" role="dialog" aria-modal="true">
