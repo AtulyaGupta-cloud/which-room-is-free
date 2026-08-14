@@ -19,6 +19,8 @@ import {
   formatDuration,
 } from '../lib/timeUtils';
 import SkeletonCard from '../components/SkeletonCard';
+import PersonalTimetable from '../components/PersonalTimetable';
+import { loadPersonalTimetable, type PersonalClass } from '../lib/personalTimetable';
 import { enablePushNotifications, getPushState, type PushState } from '../lib/pushNotifications';
 
 type FilterType =
@@ -91,6 +93,11 @@ interface WalkingRoute {
   durationSeconds: number;
 }
 
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
+}
+
 export default function HomePage({ onNavigate }: Props) {
   const [statuses, setStatuses] = useState<RoomStatus[]>([]);
   const [loading, setLoading] = useState(true);
@@ -102,7 +109,7 @@ export default function HomePage({ onNavigate }: Props) {
   const [savedRoomsOpen, setSavedRoomsOpen] = useState(false);
   const [liveTime, setLiveTime] = useState(getISTTime());
   const [lastUpdated, setLastUpdated] = useState(0);
-  const [installPrompt, setInstallPrompt] = useState<any>(null);
+  const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [iosInstallOpen, setIosInstallOpen] = useState(false);
   const [installOnboardingOpen, setInstallOnboardingOpen] = useState(() => !isRunningStandalone());
   const [userLocation, setUserLocation] = useState<Coordinates | null>(null);
@@ -120,9 +127,11 @@ export default function HomePage({ onNavigate }: Props) {
   const [pushState, setPushState] = useState<PushState>('ready');
   const [pushBusy, setPushBusy] = useState(false);
   const [pushMessage, setPushMessage] = useState('');
+  const [personalClasses, setPersonalClasses] = useState<PersonalClass[]>(loadPersonalTimetable);
 
 useEffect(() => {
-  const handler = (e: any) => {
+  const handler = (event: Event) => {
+    const e = event as BeforeInstallPromptEvent;
     e.preventDefault();
     setInstallPrompt(e);
   };
@@ -539,6 +548,12 @@ const handleInstallWithNotifications = async () => {
           )}
 
         </div>
+
+        <PersonalTimetable
+          classes={personalClasses}
+          onChange={setPersonalClasses}
+          onOpenRoom={(room) => onNavigate(`/room/${room}`)}
+        />
 
         {/* Sunday Banner */}
         {isSunday && (

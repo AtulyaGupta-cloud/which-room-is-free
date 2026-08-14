@@ -3286,3 +3286,58 @@ input { caret-color: #7C3AED; }
     margin-top: 10px;
   }
 }
+/* My Classes: AI-assisted timetable import and private on-device schedule. */
+.my-classes-home { margin: 0 0 18px; }
+.my-classes-import { width:100%; display:flex; align-items:center; gap:14px; padding:16px 18px; text-align:left; color:#e6fbff; background:linear-gradient(120deg,rgba(0,207,255,.1),rgba(124,58,237,.1)); border:1px solid rgba(92,222,255,.3); border-radius:16px; cursor:pointer; font:inherit; }
+.my-classes-import > span { width:42px; height:42px; display:grid; place-items:center; flex:none; color:#67e8f9; background:rgba(0,207,255,.12); border-radius:12px; }
+.my-classes-import svg { width:20px; }
+.my-classes-import div { display:grid; gap:3px; flex:1; }
+.my-classes-import strong { font-size:15px; }
+.my-classes-import small,.my-classes-header small { color:#7494a3; font-size:11px; }
+.my-classes-import > svg { width:17px; transform:rotate(-90deg); color:#67e8f9; }
+.my-classes-home.has-data { padding:16px; background:linear-gradient(145deg,rgba(5,35,50,.94),rgba(4,23,36,.96)); border:1px solid rgba(0,255,136,.3); border-radius:18px; }
+.my-classes-header,.my-classes-header > div { display:flex; align-items:center; gap:10px; }
+.my-classes-header { justify-content:space-between; margin-bottom:12px; }
+.my-classes-header > div > svg { color:#00ff88; }
+.my-classes-header span { display:grid; gap:2px; }
+.my-classes-header strong { font-size:17px; }
+.my-classes-header button { display:flex; align-items:center; gap:5px; padding:7px 10px; color:#8eabb8; background:transparent; border:1px solid #244657; border-radius:9px; cursor:pointer; }
+.my-classes-header button svg { width:13px; }
+.my-classes-day { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:11px; color:#7896a5; font-size:11px; font-weight:700; }
+.my-classes-day select { min-width:145px; padding:8px 10px; color:#e9fbff; background:#061725; border:1px solid #245065; border-radius:8px; font:inherit; }
+.my-classes-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:8px; }
+.my-classes-list article { display:grid; grid-template-columns:66px 1fr auto; align-items:center; gap:10px; padding:11px; background:#082131; border:1px solid #174458; border-radius:12px; }
+.my-classes-list time { color:#67e8f9; font-size:14px; font-weight:800; }
+.my-classes-list time small,.my-classes-list div span { display:block; margin-top:2px; color:#708d9a; font-size:9px; font-weight:500; }
+.my-classes-list div { min-width:0; }
+.my-classes-list div strong { display:block; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-size:12px; }
+.my-classes-list div span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.my-classes-list article button { min-width:60px; padding:7px; color:#00ff88; background:rgba(0,255,136,.07); border:1px solid rgba(0,255,136,.3); border-radius:8px; cursor:pointer; font:inherit; font-size:12px; font-weight:900; }
+.my-classes-list article button small { display:block; color:#638779; font-size:7px; letter-spacing:.12em; }
+.timetable-modal-layer { position:fixed; inset:0; z-index:2200; display:grid; place-items:center; padding:16px; }
+.timetable-modal-backdrop { position:absolute; inset:0; width:100%; border:0; background:rgba(0,6,12,.86); backdrop-filter:blur(9px); }
+.timetable-modal { position:relative; width:min(920px,100%); max-height:90vh; overflow:auto; padding:32px; color:#eefcff; background:#061725; border:1px solid rgba(72,211,246,.38); border-radius:23px; box-shadow:0 30px 100px #000; }
+.timetable-modal-close { position:absolute; top:15px; right:15px; width:38px; height:38px; display:grid; place-items:center; color:#91aab5; background:#0b2635; border:1px solid #23495b; border-radius:50%; cursor:pointer; }
+.timetable-modal-close svg { width:18px; }
+.timetable-kicker { margin:0 0 7px; color:#67e8f9; font-size:10px; font-weight:900; letter-spacing:.17em; text-transform:uppercase; }
+.timetable-modal h2 { margin:0 46px 8px 0; font-size:clamp(25px,4vw,35px); }
+.timetable-intro { max-width:700px; margin:0 0 20px; color:#8ba5b1; line-height:1.6; }
+.timetable-upload-zone { width:100%; min-height:220px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; padding:22px; color:#e7fbff; background:#092334; border:1px dashed #28738b; border-radius:17px; cursor:pointer; font:inherit; }
+.timetable-upload-zone > svg { width:35px; height:35px; color:#67e8f9; }
+.timetable-upload-zone strong { font-size:16px; }
+.timetable-upload-zone small,.timetable-privacy { color:#718d9a; font-size:10px; }
+.timetable-privacy { text-align:center; line-height:1.5; }
+.timetable-error { padding:11px 13px; color:#ffaaaa; background:rgba(255,59,59,.08); border:1px solid rgba(255,59,59,.25); border-radius:10px; }
+.timetable-spinner { width:31px; height:31px; border:3px solid #174558; border-top-color:#67e8f9; border-radius:50%; animation:timetable-spin .8s linear infinite; }
+@keyframes timetable-spin { to { transform:rotate(360deg); } }
+.timetable-review-list { display:grid; gap:8px; max-height:53vh; overflow:auto; }
+.timetable-review-list article { display:grid; grid-template-columns:1.1fr 1.2fr .6fr .7fr .75fr .75fr 36px; gap:6px; padding:9px; background:#092334; border:1px solid #17465a; border-radius:11px; }
+.timetable-review-list input,.timetable-review-list select { min-width:0; padding:8px; color:#effcff; background:#061725; border:1px solid #275267; border-radius:7px; font:inherit; font-size:12px; }
+.timetable-review-list article button { color:#ff8585; background:transparent; border:0; cursor:pointer; }
+.timetable-review-list article button svg { width:16px; }
+.timetable-review-actions { display:flex; justify-content:flex-end; gap:9px; margin-top:16px; }
+.timetable-review-actions button { padding:11px 16px; color:#a6bfca; background:#102b3b; border:1px solid #285065; border-radius:9px; cursor:pointer; font:inherit; font-weight:800; }
+.timetable-review-actions button:last-child { color:#002015; background:#00ff88; border-color:#00ff88; }
+@media(max-width:700px){
+  .my-classes-list{grid-template-columns:1fr}.my-classes-home.has-data{padding:12px}.timetable-modal-layer{padding:8px;align-items:end}.timetable-modal{max-height:94dvh;padding:24px 14px 16px;border-radius:21px 21px 10px 10px}.timetable-intro{font-size:12px}.timetable-review-list article{grid-template-columns:1fr 1fr 36px}.timetable-review-list article button{grid-column:3;grid-row:1}.timetable-review-actions{display:grid;grid-template-columns:1fr 1fr}.timetable-upload-zone{min-height:190px}
+}
