@@ -84,6 +84,7 @@ Rules:
       headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey, 'Api-Revision': '2026-05-20' },
       body: JSON.stringify({
         model: 'gemini-3.6-flash',
+        store: false,
         input: [{ type: 'text', text: prompt }, { type: 'image', mime_type: mimeType, data: imageData, resolution: 'high' }],
         response_format: {
           type: 'text',
