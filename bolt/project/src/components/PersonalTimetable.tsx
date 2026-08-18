@@ -1,6 +1,8 @@
 import { useMemo, useRef, useState } from 'react';
 import { CalendarDays, Camera, ChevronDown, Pencil, Trash2, Upload, X } from 'lucide-react';
 import { extractPersonalTimetable, savePersonalTimetable, type PersonalClass } from '../lib/personalTimetable';
+import { supabase } from '../lib/supabase';
+import { getUsageDeviceId } from '../lib/usageTracking';
 
 const WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
@@ -45,6 +47,7 @@ export default function PersonalTimetable({ classes, onChange, onOpenRoom }: Pro
     const verified = draft.filter((item) => item.day && item.courseCode && item.startTime && item.endTime && item.room);
     savePersonalTimetable(verified);
     onChange(verified);
+    void supabase.functions.invoke('track-timetable-import', { body: { deviceId: getUsageDeviceId() } });
     setSelectedDay(verified.some((item) => item.day === today) ? today : verified[0]?.day ?? today);
     setExpanded(true);
     setModal('closed');

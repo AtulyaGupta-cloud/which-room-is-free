@@ -1,6 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import type { Session } from '@supabase/supabase-js';
-import { BellRing, Download, LogOut, Send, TrendingUp, Users } from 'lucide-react';
+import { BellRing, CalendarCheck, Download, LogOut, Send, TrendingUp, Users } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { getUsageDeviceId, isUsageExcluded, setUsageExcluded } from '../lib/usageTracking';
 
@@ -10,6 +10,7 @@ interface UsageStats {
   peakConcurrent: number;
   installedDevices: number;
   notificationSubscribers: number;
+  timetableImporters: number;
   history: Array<{
     activityDate: string;
     uniqueVisitors: number;
@@ -198,6 +199,14 @@ export default function AdminPage() {
               <small>Currently subscribed devices</small>
             </div>
           </div>
+          <div className="admin-live-card admin-timetable-card">
+            <span className="admin-live-icon"><CalendarCheck size={22} /></span>
+            <div>
+              <p>Timetables imported</p>
+              <strong>{stats ? stats.timetableImporters : '—'}</strong>
+              <small>Unique devices that saved My Classes</small>
+            </div>
+          </div>
         </div>
 
         {statsError && <p className="admin-error">{statsError}</p>}
@@ -271,7 +280,7 @@ export default function AdminPage() {
         </section>
 
         <p className="admin-privacy-note">
-          Daily usage counts reset at midnight IST. Install and notification totals are cumulative. Anonymous device identifiers are hashed; no names, emails, phone numbers or locations are collected.
+          Daily usage counts reset at midnight IST. Install, notification and timetable-import totals are cumulative. Anonymous device identifiers are hashed; no timetable images, class details, names, emails, phone numbers or locations are collected in analytics.
         </p>
         <a href="/">Open the public app →</a>
       </section>
