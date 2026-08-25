@@ -357,7 +357,7 @@ const handleInstallWithNotifications = async () => {
               <X size={30} strokeWidth={2.4} />
             </button>
             <p className="weekend-advisory-kicker">Long-weekend advisory</p>
-            <h2 id="weekend-advisory-title">Please verify before heading to a room</h2>
+            <h2 id="weekend-advisory-title">Room availability may vary</h2>
             <p>Due to the long weekend, professors may cancel classes, change classroom venues, or schedule extra classes in rooms booked through AUGSD.</p>
             <p>As a result, actual room availability may vary temporarily. The app is fully updated according to the latest published AUGSD timetable, but short-notice changes may not appear here.</p>
             <button type="button" className="weekend-advisory-acknowledge" onClick={() => setWeekendAdvisoryOpen(false)}>Got it</button>
