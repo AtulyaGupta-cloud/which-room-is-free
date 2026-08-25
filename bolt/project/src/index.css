@@ -94,6 +94,25 @@ input { caret-color: #7C3AED; }
 
 .notification-help-banner button { display:flex; padding:2px; border:0; background:transparent; color:inherit; cursor:pointer; }
 
+.weekend-advisory-layer { position:fixed; inset:0; z-index:3000; display:grid; place-items:center; padding:20px; background:rgba(1,8,16,.66); backdrop-filter:blur(7px); -webkit-backdrop-filter:blur(7px); }
+.weekend-advisory { position:relative; width:min(100%,560px); padding:36px 34px 30px; border:1px solid rgba(251,191,36,.5); border-radius:24px; background:linear-gradient(145deg,rgba(11,34,48,.98),rgba(5,18,31,.99)); box-shadow:0 28px 90px rgba(0,0,0,.65),0 0 38px rgba(251,191,36,.1); color:#d8edf5; text-align:left; }
+.weekend-advisory-close { position:absolute; top:14px; right:14px; display:grid; place-items:center; width:50px; height:50px; padding:0; border:1px solid rgba(255,255,255,.18); border-radius:50%; background:rgba(2,12,22,.8); color:#f8fdff; cursor:pointer; }
+.weekend-advisory-close:hover { background:rgba(239,68,68,.2); border-color:rgba(248,113,113,.55); }
+.weekend-advisory-kicker { margin:0 64px 8px 0; color:#fbbf24; font-size:12px; font-weight:850; letter-spacing:1.7px; text-transform:uppercase; }
+.weekend-advisory h2 { margin:0 60px 18px 0; color:#f8fdff; font-size:clamp(26px,4vw,36px); line-height:1.12; letter-spacing:-.025em; }
+.weekend-advisory p:not(.weekend-advisory-kicker) { margin:0 0 14px; color:#a9c4cf; font-size:15px; line-height:1.65; }
+.weekend-advisory-acknowledge { width:100%; margin-top:8px; padding:14px 18px; border:0; border-radius:13px; background:linear-gradient(90deg,#0891b2,#2563eb); color:#fff; font:inherit; font-weight:800; cursor:pointer; }
+.weekend-advisory-acknowledge:hover { filter:brightness(1.1); }
+
+@media (max-width:600px) {
+  .weekend-advisory-layer { padding:13px; }
+  .weekend-advisory { padding:30px 20px 22px; border-radius:21px; }
+  .weekend-advisory-close { top:12px; right:12px; width:48px; height:48px; }
+  .weekend-advisory-kicker { margin-right:54px; font-size:10px; }
+  .weekend-advisory h2 { margin-right:48px; font-size:27px; }
+  .weekend-advisory p:not(.weekend-advisory-kicker) { font-size:14px; line-height:1.58; }
+}
+
 .install-onboarding-layer {
   position: fixed;
   inset: 0;

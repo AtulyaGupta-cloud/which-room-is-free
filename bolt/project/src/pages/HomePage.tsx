@@ -112,6 +112,7 @@ export default function HomePage({ onNavigate }: Props) {
   const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [iosInstallOpen, setIosInstallOpen] = useState(false);
   const [installOnboardingOpen, setInstallOnboardingOpen] = useState(() => !isRunningStandalone());
+  const [weekendAdvisoryOpen, setWeekendAdvisoryOpen] = useState(true);
   const [userLocation, setUserLocation] = useState<Coordinates | null>(null);
   const [locationAccuracy, setLocationAccuracy] = useState<number | null>(null);
   const [locationStatus, setLocationStatus] = useState<LocationStatus>('idle');
@@ -349,6 +350,20 @@ const handleInstallWithNotifications = async () => {
 
   return (
     <div className="home-page digital-theme" style={{ minHeight: '100vh', background: '#0A0A0A', color: '#FFFFFF', fontFamily: 'Inter, -apple-system, sans-serif' }}>
+      {weekendAdvisoryOpen && (
+        <div className="weekend-advisory-layer" role="presentation">
+          <section className="weekend-advisory" role="dialog" aria-modal="true" aria-labelledby="weekend-advisory-title">
+            <button type="button" className="weekend-advisory-close" aria-label="Close long-weekend advisory" onClick={() => setWeekendAdvisoryOpen(false)}>
+              <X size={30} strokeWidth={2.4} />
+            </button>
+            <p className="weekend-advisory-kicker">Long-weekend advisory</p>
+            <h2 id="weekend-advisory-title">Please verify before heading to a room</h2>
+            <p>Due to the long weekend, professors may cancel classes, change classroom venues, or schedule extra classes in rooms booked through AUGSD.</p>
+            <p>As a result, actual room availability may vary temporarily. The app is fully updated according to the latest published AUGSD timetable, but short-notice changes may not appear here.</p>
+            <button type="button" className="weekend-advisory-acknowledge" onClick={() => setWeekendAdvisoryOpen(false)}>Got it</button>
+          </section>
+        </div>
+      )}
       {installOnboardingOpen && showInstallButton && (
         <div className="install-onboarding-layer" role="presentation">
           <section className="install-onboarding" role="dialog" aria-modal="true" aria-labelledby="install-onboarding-title">
