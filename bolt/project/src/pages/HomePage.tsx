@@ -558,7 +558,7 @@ const handleInstallWithNotifications = async () => {
 
           {showClockTower && (
             <p className="timetable-update-note">
-              Updated with the latest AUGSD timetable · Uploaded 27 August 2026
+              Updated with the latest AUGSD timetable · Uploaded 31 August 2026
             </p>
           )}
 
