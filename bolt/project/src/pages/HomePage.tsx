@@ -353,13 +353,11 @@ const handleInstallWithNotifications = async () => {
       {weekendAdvisoryOpen && (
         <div className="weekend-advisory-layer" role="presentation">
           <section className="weekend-advisory" role="dialog" aria-modal="true" aria-labelledby="weekend-advisory-title">
-            <button type="button" className="weekend-advisory-close" aria-label="Close long-weekend advisory" onClick={() => setWeekendAdvisoryOpen(false)}>
+            <button type="button" className="weekend-advisory-close" aria-label="Close maintenance notice" onClick={() => setWeekendAdvisoryOpen(false)}>
               <X size={30} strokeWidth={2.4} />
             </button>
-            <p className="weekend-advisory-kicker">Long-weekend advisory</p>
-            <h2 id="weekend-advisory-title">Room availability may vary</h2>
-            <p>Due to the long weekend, professors may cancel classes, change classroom venues, or schedule extra classes in rooms booked through AUGSD.</p>
-            <p>As a result, actual room availability may vary temporarily. The app is fully updated according to the latest published AUGSD timetable, but short-notice changes may not appear here.</p>
+            <p className="weekend-advisory-kicker">Maintenance notice</p>
+            <h2 id="weekend-advisory-title">App is under maintenance</h2>
             <button type="button" className="weekend-advisory-acknowledge" onClick={() => setWeekendAdvisoryOpen(false)}>Got it</button>
           </section>
         </div>
